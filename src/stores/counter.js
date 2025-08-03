@@ -1,12 +1,13 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  const doubleCount = computed(() => count.value * 2)
-  function increment() {
-    count.value++
-  }
+  // 存储当前选中的标签索引
+  const selectedTags = ref([])
+  // 存储已确认的标签索引（会变成灰色不可选）
+  const confirmedTags = ref([])
 
-  return { count, doubleCount, increment }
+  
+
+  return { selectedTags, confirmedTags }
 })

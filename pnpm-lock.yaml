@@ -11,9 +11,18 @@ importers:
       ant-design-vue:
         specifier: 4.x
         version: 4.2.6(vue@3.5.18)
+      autoprefixer:
+        specifier: ^10.4.21
+        version: 10.4.21(postcss@8.5.6)
       pinia:
         specifier: ^3.0.3
         version: 3.0.3(vue@3.5.18)
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
+      tailwindcss:
+        specifier: 3.4.17
+        version: 3.4.17
       vue:
         specifier: ^3.5.18
         version: 3.5.18
@@ -30,9 +39,6 @@ importers:
       '@vue/eslint-config-prettier':
         specifier: ^10.2.0
         version: 10.2.0(eslint@9.32.0(jiti@1.21.7))(prettier@3.6.2)
-      autoprefixer:
-        specifier: ^10.4.21
-        version: 10.4.21(postcss@8.5.6)
       eslint:
         specifier: ^9.31.0
         version: 9.32.0(jiti@1.21.7)
@@ -42,15 +48,9 @@ importers:
       globals:
         specifier: ^16.3.0
         version: 16.3.0
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.6
       prettier:
         specifier: 3.6.2
         version: 3.6.2
-      tailwindcss:
-        specifier: 3.4.17
-        version: 3.4.17
       vite:
         specifier: ^7.0.6
         version: 7.0.6(jiti@1.21.7)(yaml@2.8.0)

@@ -1,11 +1,8 @@
-import './assets/main.css'
 import './assets/tailwind.css'
-
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import 'ant-design-vue/dist/reset.css'  // Ant Design ÑשÊ½
 import router from './router'
-
 import App from './App.vue'
 import Antd from 'ant-design-vue'
 
