@@ -7,7 +7,8 @@ export const useCounterStore = defineStore('counter', () => {
   // 存储已确认的标签索引（会变成灰色不可选）
   const confirmedTags = ref([])
 
-  
+  const canChoose = ref([])
 
-  return { selectedTags, confirmedTags }
+
+  return { selectedTags, confirmedTags ,canChoose}
 })
