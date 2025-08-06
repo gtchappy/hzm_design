@@ -11,11 +11,12 @@
 </template>
 
 <script setup>
-import { ref ,defineEmits} from 'vue'
+import { ref, defineEmits } from 'vue'
 import { useCounterStore } from '@/stores/counter'
 const emit = defineEmits(['emitSelectedDevice'])
 const selectedDevice = ref('')
 const device = ref({
+  0: '自定义',
   1: '霍尔转速传感器',
   2: '磁电式传感器',
 })
@@ -45,5 +46,6 @@ const handleChange = (value) => {
     counterStore.canChoose.push(...pin[pinType])
   })
   emit('emitSelectedDevice', selectedDevice.value)
+  counterStore.selectedTags = []
 }
 </script>
