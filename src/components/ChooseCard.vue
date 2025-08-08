@@ -1,10 +1,10 @@
 <template>
   <div style="background-color: #ececec; padding: 20px">
     <a-row :gutter="10">
-      <a-col :span="12" :style="{ marginTop: '0px' }">
-        <a-card title="PLUGA" :bordered="false">
+     <a-col :span="12" :style="{ marginTop: '30px' }">
+        <a-card title="Engine Plug A pin assignment" :bordered="false">
           <a-card-grid
-            v-for="a in PLUGA"
+            v-for="(a, index) in PLUGA"
             :key="a"
             :class="{
               'default-card': 1,
@@ -13,16 +13,24 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-            :style="{ width: '25%' }"
+             :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+            class="flex items-center"
           >
-            {{ a }}
+            <a-avatar style="color: rgb(0, 0, 0); margin-left: 10px ;font-size: 13px;">
+              {{ 'A' + (index + 1) }}
+            </a-avatar>
+            <div style="text-align: center" class="flex-1 flex justify-center">
+              <div class="flex items-center justify-center mr-5">
+                {{ a.split(':')[1]  }}
+              </div>
+            </div>
           </a-card-grid>
         </a-card>
       </a-col>
-      <a-col :span="12" :style="{ marginTop: '0px' }">
-        <a-card title="PLUGB" :bordered="false">
+     <a-col :span="12" :style="{ marginTop: '30px' }">
+        <a-card title="Engine Plug B pin assignment" :bordered="false">
           <a-card-grid
-            v-for="a in PLUGB"
+            v-for="(a, index) in PLUGB"
             :key="a"
             :class="{
               'default-card': 1,
@@ -31,16 +39,24 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-            :style="{ width: '25%' }"
+           :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+            class="flex items-center"
           >
-            {{ a }}
+            <a-avatar style="color: rgb(128, 128, 128); margin-left: 10px ;font-size: 13px;">
+              {{ 'B' + (index + 1) }}
+            </a-avatar>
+            <div style="text-align: center" class="flex-1 flex justify-center">
+              <div class="flex items-center justify-center mr-5">
+                {{ a.split(':')[1] }}
+              </div>
+            </div>
           </a-card-grid>
         </a-card>
       </a-col>
       <a-col :span="12" :style="{ marginTop: '30px' }">
-        <a-card title="PLUGC" :bordered="false">
+        <a-card title="Engine Plug C pin assignment" :bordered="false">
           <a-card-grid
-            v-for="a in PLUGC"
+            v-for="(a, index) in PLUGC"
             :key="a"
             :class="{
               'default-card': 1,
@@ -49,14 +65,22 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-            :style="{ width: '25%' }"
+           :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+            class="flex items-center"
           >
-            {{ a }}
+            <a-avatar style="color: rgb(0, 0, 255 ); margin-left: 10px; font-size: 13px">
+              {{ 'C' + (index + 1) }}
+            </a-avatar>
+            <div style="text-align: center" class="flex-1 flex justify-center">
+              <div class="flex items-center justify-center mr-5">
+                {{ a.split(':')[1] }}
+              </div>
+            </div>
           </a-card-grid>
         </a-card>
       </a-col>
       <a-col :span="12" :style="{ marginTop: '30px' }">
-        <a-card title="PLUGD" :bordered="false">
+        <a-card title="Engine Plug D pin assignment" :bordered="false">
           <a-card-grid
             v-for="(a, index) in PLUGD"
             :key="a"
@@ -67,24 +91,24 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-            :style="{ width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+           :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
-            <a-avatar style="color: rgb(0, 255, 0); margin-left: 10px ;font-size: 13px;">
+            <a-avatar style="color: rgb(0, 255, 0); margin-left: 10px; font-size: 13px">
               {{ 'D' + (index + 1) }}
             </a-avatar>
             <div style="text-align: center" class="flex-1 flex justify-center">
               <div class="flex items-center justify-center mr-5">
-                {{ a }}
+                {{ a.split(':')[1] }}
               </div>
             </div>
           </a-card-grid>
         </a-card>
       </a-col>
       <a-col :span="12" :style="{ marginTop: '30px' }">
-        <a-card title="PLUGE" :bordered="false">
+        <a-card title="Engine Plug E pin assignment" :bordered="false">
           <a-card-grid
-            v-for="a in PLUGE"
+            v-for="(a, index) in PLUGE"
             :key="a"
             :class="{
               'default-card': 1,
@@ -93,12 +117,26 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-            :style="{ width: '33.3333%' }"
+            :style="{ width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }"
+            class="flex items-center"
           >
-            {{ a }}
+            <a-avatar style="color: rgb(0, 128, 0); margin-left: 10px; font-size: 13px">
+              {{ 'E' + (index + 1) }}
+            </a-avatar>
+            <div style="text-align: center" class="flex-1 flex justify-center">
+              <div class="flex items-center justify-center mr-5">
+                {{ a.split(':')[1] }}
+              </div>
+            </div>
           </a-card-grid>
         </a-card>
       </a-col>
+
+
+
+
+
+
     </a-row>
   </div>
 </template>

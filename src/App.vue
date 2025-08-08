@@ -17,6 +17,9 @@
         <a-menu-item key="2">
           <router-link to="/xios">XIOS UC1</router-link>
         </a-menu-item>
+         <a-menu-item key="3">
+          <router-link to="/deviceDefine">设备定义</router-link>
+        </a-menu-item>
       </a-menu>
     </a-layout-header>
 
@@ -27,13 +30,6 @@
       </div>
     </a-layout-content>
   </a-layout>
-
-
-
-
-    
-
-
 </template>
 
 <script setup>
@@ -41,5 +37,4 @@ import { ref } from 'vue'
 const selectedKeys = ref(['1'])
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
