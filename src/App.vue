@@ -17,7 +17,7 @@
         <a-menu-item key="2">
           <router-link to="/xios">XIOS UC1</router-link>
         </a-menu-item>
-         <a-menu-item key="3">
+        <a-menu-item key="3">
           <router-link to="/deviceDefine">设备定义</router-link>
         </a-menu-item>
       </a-menu>
@@ -26,7 +26,11 @@
     <!-- 主要内容区域 -->
     <a-layout-content class="pt-[64px] bg-white">
       <div class="relative z-1">
-        <router-view></router-view>
+        <router-view v-slot="{ Component }">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </router-view>
       </div>
     </a-layout-content>
   </a-layout>

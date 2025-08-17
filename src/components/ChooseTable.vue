@@ -26,7 +26,7 @@ const deviceConfig = {
 }
 
 onMounted(() => {
-  handleChange('自定义')
+  handleChange('显示全部')
 })
 
 

@@ -123,8 +123,8 @@ const PLUG_B_PIN = [
   'B57:VCO2-OUT',
   'B58:VCO3-OUT',
   'B59:VCO4-OUT',
-  'B60:	GND',
-  'B61:	GND',
+  'B60:GND',
+  'B61:GND',
   'B62:GND',
 ]
 const PLUG_C_PIN = [

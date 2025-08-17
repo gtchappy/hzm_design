@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
+
 export const useCounterStore = defineStore('counter', () => {
   // 存储当前选中的标签索引
   const selectedTags = ref([])
@@ -11,9 +12,7 @@ export const useCounterStore = defineStore('counter', () => {
   //定义设备数据
 
   const device = ref({
-    0: '显示全部',
-    1: '霍尔转速传感器',
-    2: '磁电式传感器',
+    0: '显示全部'
   })
 
   //解释传感器各个针脚功能
@@ -151,8 +150,8 @@ export const useCounterStore = defineStore('counter', () => {
       'B57:VCO2-OUT',
       'B58:VCO3-OUT',
       'B59:VCO4-OUT',
-      'B60: GND',
-      'B61: GND',
+      'B60:GND',
+      'B61:GND',
       'B62:GND',
       'C1:INJ1+',
       'C2:INJ1-',
@@ -326,6 +325,7 @@ export const useCounterStore = defineStore('counter', () => {
   const treeData = [
     {
       label: '转速传感器',
+      key: '霍尔转速传感器,磁电转速传感器',
       value: '霍尔转速传感器,磁电转速传感器',
       children: [
         {
