@@ -16,7 +16,7 @@
              :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
-            <a-avatar style="color: rgb(0, 0, 0); margin-left: 10px ;font-size: 13px;">
+            <a-avatar style="background-color: rgb(255, 182, 103);  color: rgb(0,0,0); margin-left: 10px ;font-size: 13px;font-weight: 500;">
               {{ 'A' + (index + 1) }}
             </a-avatar>
             <div style="text-align: center" class="flex-1 flex justify-center">
@@ -42,7 +42,7 @@
            :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
-            <a-avatar style="color: rgb(128, 128, 128); margin-left: 10px ;font-size: 13px;">
+            <a-avatar style="background-color: rgb(185, 241, 78);  color: rgb(0,0,0); margin-left: 10px ;font-size: 13px;font-weight: 500;">
               {{ 'B' + (index + 1) }}
             </a-avatar>
             <div style="text-align: center" class="flex-1 flex justify-center">
@@ -68,7 +68,7 @@
            :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
-            <a-avatar style="color: rgb(0, 0, 255 ); margin-left: 10px; font-size: 13px">
+            <a-avatar style="background-color: rgb(253, 228, 132);  color: rgb(0,0,0); margin-left: 10px; font-size: 13px;font-weight: 500;">
               {{ 'C' + (index + 1) }}
             </a-avatar>
             <div style="text-align: center" class="flex-1 flex justify-center">
@@ -94,7 +94,7 @@
            :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
-            <a-avatar style="color: rgb(0, 255, 0); margin-left: 10px; font-size: 13px">
+            <a-avatar style="background-color: rgb(184, 230, 254);  color: rgb(0,0,0); margin-left: 10px; font-size: 13px;font-weight: 500;">
               {{ 'D' + (index + 1) }}
             </a-avatar>
             <div style="text-align: center" class="flex-1 flex justify-center">
@@ -120,7 +120,7 @@
             :style="{ width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
-            <a-avatar style="color: rgb(0, 128, 0); margin-left: 10px; font-size: 13px">
+            <a-avatar style="background-color: rgb(255, 214, 167);  color: rgb(0,0,0); margin-left: 10px; font-size: 13px;font-weight: 500;">
               {{ 'E' + (index + 1) }}
             </a-avatar>
             <div style="text-align: center" class="flex-1 flex justify-center">
