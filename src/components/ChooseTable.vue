@@ -1,12 +1,13 @@
 <template>
-  <a-space>
+  <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top:20px ;">
     <a-select style="width: 220px" @change="handleChange"  placeholder="显示全部">
       <a-select-option v-for="(value, key) in deviceConfig.devices" :key="key" :value="value"> {{
         value
       }}</a-select-option>
     </a-select>
-    <a-tag class="text-base tracking-wider">当前选择:{{ selectedDevice }}</a-tag>
-    <a-tag class="text-base tracking-wider"
+    <ShowDrawer/>
+    <a-tag class="text-base tracking-wider" style="background-color: white;">当前选择:{{ selectedDevice }}</a-tag>
+    <a-tag class="text-base tracking-wider" style="background-color: white;"
       >定义为:{{ deviceConfig.definitions[selectedDevice] }}</a-tag
     >
   </a-space>
@@ -15,6 +16,7 @@
 <script setup>
 import { ref, defineEmits, onMounted } from 'vue'
 import { useCounterStore} from '@/stores/counter'
+import ShowDrawer from './ShowDrawer.vue'
 const emit = defineEmits(['emitSelectedDevice'])
 const selectedDevice = ref('')
 const counterStore = useCounterStore()

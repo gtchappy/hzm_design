@@ -2,8 +2,9 @@
   <a-layout class="h-[100vh]">
     <!-- 固定头部的头部导航 -->
     <a-layout-header class="fixed top-0 left-0 right-0 z-10">
-      <div class="logo w-30 h-8 bg-[rgb(235,240,240)] float-left m-4">
+      <div class="logo w-30 h-8 bg-[rgb(236,236,236)] float-left m-4">
         <img src="/src/assets/logo.png" alt="logo" class="w-full h-full" />
+
       </div>
       <a-menu
         v-model:selectedKeys="selectedKeys"

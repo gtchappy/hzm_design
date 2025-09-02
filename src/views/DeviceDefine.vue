@@ -1,5 +1,5 @@
-<template>
-  <div style="background-color: #ececec; padding: 20px; height: 100vh">
+<template >
+  <div style="background-color: #ececec; padding: 20px; height: 150vh;">
     <a-tree-select
       v-model:value="deviceConfig"
       style="width: 100%; margin-bottom: 20px"
@@ -10,9 +10,9 @@
       placeholder="Please select"
       tree-node-filter-prop="label"
     />
-    <a-row :gutter="16">
-      <a-col :span="8" v-for="item in deviceConfigList" :key="item">
-        <a-card :title="item" :bordered="false">
+    <a-row :gutter="[16,16]" >
+      <a-col :span="8" v-for="item in deviceConfigList" :key="item" >
+        <a-card hoverable :title="item">
           <p>{{ counterStore.deviceDefine[item] }}</p>
           <a-button type="primary" class="mr-1" @click="addPin(item)">增加</a-button>
           <a-button danger>删除</a-button>
@@ -20,6 +20,7 @@
       </a-col>
     </a-row>
   </div>
+  {{ deviceConfigList }}
 </template>
 
 <script setup>
@@ -41,10 +42,6 @@ const addPin = (item) => {
     newObj[newKey] = deviceConfigList.value[key] // 赋值对应的值
   })
   counterStore.device = newObj
-  console.log('deviceConfigList.value')
-  console.log(deviceConfigList.value)
-  console.log('counterStore.device')
-  console.log(counterStore.device)
 }
 
 onMounted(() => {
@@ -76,21 +73,6 @@ watch(deviceConfig, () => {
   })
 
 
-
-
-
-
-
-
-
-
-
-
-
-  // 如果需要替换原对象，可以这样赋值
-  // deviceConfigList.value = filteredDeviceConfig;
-
-
   const newObj = { 0: '显示全部' }
   // 步骤2：遍历原对象，将键+1后添加到新对象
   Object.keys(deviceConfigList.value).forEach((key) => {
@@ -98,7 +80,5 @@ watch(deviceConfig, () => {
     newObj[newKey] = deviceConfigList.value[key] // 赋值对应的值
   })
   counterStore.device = newObj
-  console.log('counterStore.device')
-  console.log(counterStore.device)
 })
 </script>

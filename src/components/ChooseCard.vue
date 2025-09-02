@@ -1,7 +1,7 @@
 <template>
-  <div style="background-color: #ececec; padding: 20px">
+  <div style="background-color: #ececec; padding: 0 20px 20px 20px">
     <a-row :gutter="10">
-     <a-col :span="12" :style="{ marginTop: '30px' }">
+      <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug A pin assignment" :bordered="false">
           <a-card-grid
             v-for="(a, index) in PLUGA"
@@ -13,21 +13,35 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-             :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+            :style="
+              index > 55
+                ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
+                : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
+            "
             class="flex items-center"
           >
-            <a-avatar style="background-color: rgb(255, 182, 103);  color: rgb(0,0,0); margin-left: 10px ;font-size: 13px;font-weight: 500;">
-              {{ 'A' + (index + 1) }}
-            </a-avatar>
+            <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
+              <a-avatar
+                style="
+                  background-color: rgb(255, 182, 103);
+                  color: rgb(0, 0, 0);
+                  margin-left: 10px;
+                  font-size: 13px;
+                  font-weight: 500;
+                "
+              >
+                {{ 'A' + (index + 1) }}
+              </a-avatar>
+            </a-popover>
             <div style="text-align: center" class="flex-1 flex justify-center">
               <div class="flex items-center justify-center mr-5">
-                {{ a.split(':')[1]  }}
+                {{ a.split(':')[1] }}
               </div>
             </div>
           </a-card-grid>
         </a-card>
       </a-col>
-     <a-col :span="12" :style="{ marginTop: '30px' }">
+      <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug B pin assignment" :bordered="false">
           <a-card-grid
             v-for="(a, index) in PLUGB"
@@ -39,12 +53,26 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-           :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+            :style="
+              index > 55
+                ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
+                : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
+            "
             class="flex items-center"
           >
-            <a-avatar style="background-color: rgb(185, 241, 78);  color: rgb(0,0,0); margin-left: 10px ;font-size: 13px;font-weight: 500;">
-              {{ 'B' + (index + 1) }}
-            </a-avatar>
+            <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
+              <a-avatar
+                style="
+                  background-color: rgb(185, 241, 78);
+                  color: rgb(0, 0, 0);
+                  margin-left: 10px;
+                  font-size: 13px;
+                  font-weight: 500;
+                "
+              >
+                {{ 'B' + (index + 1) }}
+              </a-avatar>
+            </a-popover>
             <div style="text-align: center" class="flex-1 flex justify-center">
               <div class="flex items-center justify-center mr-5">
                 {{ a.split(':')[1] }}
@@ -65,12 +93,26 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-           :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+            :style="
+              index > 55
+                ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
+                : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
+            "
             class="flex items-center"
           >
-            <a-avatar style="background-color: rgb(253, 228, 132);  color: rgb(0,0,0); margin-left: 10px; font-size: 13px;font-weight: 500;">
-              {{ 'C' + (index + 1) }}
-            </a-avatar>
+            <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
+              <a-avatar
+                style="
+                  background-color: rgb(253, 228, 132);
+                  color: rgb(0, 0, 0);
+                  margin-left: 10px;
+                  font-size: 13px;
+                  font-weight: 500;
+                "
+              >
+                {{ 'C' + (index + 1) }}
+              </a-avatar>
+            </a-popover>
             <div style="text-align: center" class="flex-1 flex justify-center">
               <div class="flex items-center justify-center mr-5">
                 {{ a.split(':')[1] }}
@@ -91,12 +133,26 @@
               'used-card': counterStore.confirmedTags.includes(a),
             }"
             @click="handleTagClick(a)"
-           :style="index > 55 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' } : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }"
+            :style="
+              index > 55
+                ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
+                : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
+            "
             class="flex items-center"
           >
-            <a-avatar style="background-color: rgb(184, 230, 254);  color: rgb(0,0,0); margin-left: 10px; font-size: 13px;font-weight: 500;">
-              {{ 'D' + (index + 1) }}
-            </a-avatar>
+            <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
+              <a-avatar
+                style="
+                  background-color: rgb(184, 230, 254);
+                  color: rgb(0, 0, 0);
+                  margin-left: 10px;
+                  font-size: 13px;
+                  font-weight: 500;
+                "
+              >
+                {{ 'D' + (index + 1) }}
+              </a-avatar>
+            </a-popover>
             <div style="text-align: center" class="flex-1 flex justify-center">
               <div class="flex items-center justify-center mr-5">
                 {{ a.split(':')[1] }}
@@ -120,9 +176,19 @@
             :style="{ width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
-            <a-avatar style="background-color: rgb(255, 214, 167);  color: rgb(0,0,0); margin-left: 10px; font-size: 13px;font-weight: 500;">
-              {{ 'E' + (index + 1) }}
-            </a-avatar>
+            <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
+              <a-avatar
+                style="
+                  background-color: rgb(255, 214, 167);
+                  color: rgb(0, 0, 0);
+                  margin-left: 10px;
+                  font-size: 13px;
+                  font-weight: 500;
+                "
+              >
+                {{ 'E' + (index + 1) }}
+              </a-avatar>
+            </a-popover>
             <div style="text-align: center" class="flex-1 flex justify-center">
               <div class="flex items-center justify-center mr-5">
                 {{ a.split(':')[1] }}
@@ -131,12 +197,6 @@
           </a-card-grid>
         </a-card>
       </a-col>
-
-
-
-
-
-
     </a-row>
   </div>
 </template>
@@ -186,6 +246,22 @@ const handleTagClick = (index) => {
     counterStore.selectedTags.push(index)
   }
 }
+const getMappedTitle = (pin) => {
+  switch (pin) {
+    case 'PGND':
+      return '这是PGND'
+    case 'B':
+      return 'Engine Plug B pin assignment'
+    case 'C':
+      return 'Engine Plug C pin assignment'
+    case 'D':
+      return 'Engine Plug D pin assignment'
+    case 'E':
+      return 'Engine Plug E pin assignment'
+    default:
+      return ''
+  }
+}
 </script>
 
 <style scoped>
@@ -202,7 +278,7 @@ const handleTagClick = (index) => {
 /* 不可选择的卡片样式 */
 .inactive-card {
   text-align: center;
-  background-color: rgb(204, 204, 204);
+  background-color: rgb(236, 236, 236);
 }
 /* 已确认的卡片样式 */
 .used-card {
