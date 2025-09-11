@@ -12,14 +12,14 @@
         mode="horizontal"
         class="line-h-[64px]"
       >
-        <a-menu-item key="1">
+      <a-menu-item key="1">
+        <router-link to="/deviceDefine">设备定义</router-link>
+      </a-menu-item>
+        <a-menu-item key="2">
           <router-link to="/mvc">MVC01-24</router-link>
         </a-menu-item>
-        <a-menu-item key="2">
-          <router-link to="/xios">XIOS UC1</router-link>
-        </a-menu-item>
         <a-menu-item key="3">
-          <router-link to="/deviceDefine">设备定义</router-link>
+          <router-link to="/xios">XIOS UC1</router-link>
         </a-menu-item>
       </a-menu>
     </a-layout-header>

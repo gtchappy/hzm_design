@@ -12,13 +12,13 @@ export const useCounterStore = defineStore('counter', () => {
   //定义设备数据
 
   const device = ref({
-    0: '显示全部'
+    999: '显示全部'
   })
 
   //解释传感器各个针脚功能
   const deviceDefine = {
-    霍尔转速传感器: '霍尔转速传感器B:12V+/A:GND/C:Signal',
-    磁电转速传感器: '磁电式传感器B:Signal/A:GND',
+    霍尔转速传感器: 'B:12V+/A:GND/C:Signal',
+    磁电转速传感器: 'B:Signal/A:GND',
   }
   //定义各个针脚功能
   const devicePinDefine = {
@@ -321,38 +321,6 @@ export const useCounterStore = defineStore('counter', () => {
     Signal: ['A1:PWMI1-(IN+)', 'A2:PWMI1-(IN-)'],
     '12V+': ['A18:RS232-T'],
   }
-  //定义传感器树
-  const treeData = [
-    {
-      label: '转速传感器',
-      key: '霍尔转速传感器,磁电转速传感器',
-      value: '霍尔转速传感器,磁电转速传感器',
-      children: [
-        {
-          label: '霍尔转速传感器',
-          value: '霍尔转速传感器',
-        },
-        {
-          label: '磁电转速传感器',
-          value: '磁电转速传感器',
-        },
-      ],
-    },
-    {
-      label: '执行器',
-      value: '1,2',
-      children: [
-        {
-          label: '1',
-          value: '1',
-        },
-        {
-          label: '2',
-          value: '2',
-        },
-      ],
-    },
-  ]
 
   return {
     selectedTags,
@@ -362,6 +330,5 @@ export const useCounterStore = defineStore('counter', () => {
     deviceDefine,
     devicePinDefine,
     pin,
-    treeData,
   }
 })
