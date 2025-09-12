@@ -1,8 +1,8 @@
 <template>
   <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top:20px ;">
     <a-select style="width: 220px" @change="handleChange"  placeholder="显示全部">
-      <a-select-option v-for="(value, key) in deviceConfig.devices" :key="key" :value="value"> {{
-        value
+      <a-select-option v-for="(value, key) in deviceConfig.devices" :key="key" :value="key +':'+ value"> {{
+       value
       }}</a-select-option>
     </a-select>
     <ShowDrawer/>
@@ -33,9 +33,9 @@ onMounted(() => {
 
 
 const handleChange = (value) => {
-  selectedDevice.value = value
+  selectedDevice.value = value.split(':')[1]
   counterStore.canChoose = []
-  deviceConfig.pinDefinitions[value]?.forEach((pinType) => {
+  deviceConfig.pinDefinitions[value.split(':')[1]]?.forEach((pinType) => {
     counterStore.canChoose.push(...deviceConfig.pins[pinType])
   })
   emit('emitSelectedDevice', selectedDevice.value)

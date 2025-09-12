@@ -10,21 +10,21 @@
     placement="right"
     @after-open-change="afterOpenChange"
   >
-    <ChooseFireOrder />
+    <h1 style="color: black">发火顺序</h1>
+    <ChooseFireOrder style="margin-bottom: 20px" />
+    <h1 style="color: black">功能配置</h1>
     <ChooseFireInjKnock />
-    <p>Some contents...</p>
-    <p>Some contents...</p>
   </a-drawer>
 </template>
 <script setup>
-import { ref } from 'vue';
+import { ref } from 'vue'
 import ChooseFireOrder from './ChooseFireOrder.vue'
 import ChooseFireInjKnock from './ChooseFireInjKnock.vue'
-const open = ref(false);
-const afterOpenChange = bool => {
-  console.log('open', bool);
-};
+const open = ref(false)
+const afterOpenChange = (bool) => {
+  console.log('open', bool)
+}
 const showDrawer = () => {
-  open.value = true;
-};
+  open.value = true
+}
 </script>

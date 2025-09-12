@@ -18,7 +18,7 @@ export const useCounterStore = defineStore('counter', () => {
   //解释传感器各个针脚功能
   const deviceDefine = {
     霍尔转速传感器: 'B:12V+/A:GND/C:Signal',
-    磁电转速传感器: 'B:Signal/A:GND',
+    磁电式传感器: 'B:Signal/A:GND',
   }
   //定义各个针脚功能
   const devicePinDefine = {
