@@ -1,10 +1,11 @@
 <template>
   <ChooseTable @emitSelectedDevice="handleSelectedDevice" />
-  <ChooseCard :PLUGA="PLUG_A" :PLUGB="PLUG_B" :PLUGC="PLUG_C" :PLUGD="PLUG_D" :PLUGE="PLUG_E" />
+  <ChooseCard :PLUGA="PLUG_A" :PLUGB="PLUG_B" :PLUGC="PLUG_C" :PLUGD="PLUG_D" :PLUGE="PLUG_E"  />
   <a-float-button @click="handleConfirm" description="确认" :style="{ bottom: '60px' }" />
   <a-float-button @click="handleReset" description="重置" :style="{ bottom: '10px' }" />
   <a-back-top :visibility-height="0" :style="{ bottom: '10px', left: '10px' }" />
   <h1>{{ JSON.stringify(showChooseTable, null, 2) }}</h1>
+  <h1>{{ counterStore.device }}</h1>
 </template>
 
 <script setup>

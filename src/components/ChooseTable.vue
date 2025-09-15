@@ -1,7 +1,7 @@
 <template>
   <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top:20px ;">
     <a-select style="width: 220px" @change="handleChange"  placeholder="显示全部">
-      <a-select-option v-for="(value, key) in deviceConfig.devices" :key="key" :value="key +':'+ value"> {{
+      <a-select-option v-for="(value, key) in counterStore.device" :key="key" :value="key +':'+ value"> {{
        value
       }}</a-select-option>
     </a-select>
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, onMounted } from 'vue'
+import { ref, defineEmits } from 'vue'
 import { useCounterStore} from '@/stores/counter'
 import ShowDrawer from './ShowDrawer.vue'
 const emit = defineEmits(['emitSelectedDevice'])
@@ -27,10 +27,6 @@ const deviceConfig = {
   pins: counterStore.pin,
 }
 
-onMounted(() => {
-  handleChange('显示全部')
-})
-
 
 const handleChange = (value) => {
   selectedDevice.value = value.split(':')[1]
@@ -40,5 +36,6 @@ const handleChange = (value) => {
   })
   emit('emitSelectedDevice', selectedDevice.value)
   counterStore.selectedTags = []
+  counterStore.currentDevice = value.split(':')[1]
 }
 </script>

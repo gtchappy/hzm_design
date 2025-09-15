@@ -4,17 +4,16 @@
       <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug A pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, index) in PLUGA"
+            v-for="(a, Pindex) in PLUGA"
             :key="a"
             :class="{
               'default-card': 1,
-              'active-card': counterStore.selectedTags.includes(a),
-              'inactive-card': !counterStore.canChoose.includes(a),
+              'active-card': counterStore.canChoose.includes(a),
+              // 'inactive-card': !counterStore.canChoose.includes(a),
               'used-card': counterStore.confirmedTags.includes(a),
             }"
-            @click="handleTagClick(a)"
             :style="
-              index > 55
+              Pindex > 55
                 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
                 : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
             "
@@ -30,14 +29,37 @@
                   font-weight: 500;
                 "
               >
-                {{ 'A' + (index + 1) }}
+                {{ 'A' + (Pindex + 1) }}
               </a-avatar>
             </a-popover>
-            <div style="text-align: center" class="flex-1 flex justify-center">
-              <div class="flex items-center justify-center mr-5">
-                {{ a.split(':')[1] }}
+            <a-dropdown :trigger="['click']">
+              <div style="text-align: center" class="flex-1 flex flex-col justify-between">
+                <div class="flex items-center justify-center mr-5">
+                  {{ a.split(':')[1] }}
+                </div>
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChoose['A' + (Pindex + 1)] }}
+                </div>
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChooseDefine['A' + (Pindex + 1)] }}
+                </div>
               </div>
-            </div>
+
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item
+                    :key="index"
+                    v-for="index in counterStore.devicePinDefine[counterStore.currentDevice]"
+                    @click="handleMenuClick(index, 'A' + (Pindex + 1))"
+                    >{{ index }}</a-menu-item
+                  >
+                  <a-input-group compact>
+                    <a-input style="width: 150px" />
+                    <a-button type="primary" style="width: 30px text-align:center;">OK</a-button>
+                  </a-input-group>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </a-card-grid>
         </a-card>
       </a-col>
@@ -189,15 +211,19 @@
                 {{ 'E' + (index + 1) }}
               </a-avatar>
             </a-popover>
-            <div style="text-align: center" class="flex-1 flex justify-center">
+            <div style="text-align: center" class="flex-1 flex flex-col justify-between">
               <div class="flex items-center justify-center mr-5">
                 {{ a.split(':')[1] }}
               </div>
+              <div class="flex items-center justify-center mr-5">{{ 'haha' }}</div>
             </div>
           </a-card-grid>
         </a-card>
       </a-col>
     </a-row>
+  </div>
+  <div>
+    {{ counterStore.currentDevice }}
   </div>
 </template>
 
@@ -230,30 +256,35 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  currentDevice: {
+    type: String,
+    default: '',
+  },
 })
-const handleTagClick = (index) => {
-  // 先获取 store 实例
-  const counterStore = useCounterStore()
-  // 检查是否已确认（避免重复访问）
-  if (counterStore.confirmedTags.includes(index)) return
-  // 检查是否可选择
-  if (!counterStore.canChoose.includes(index)) return
-  // 切换选中状态
-  const tagIndex = counterStore.selectedTags.indexOf(index)
-  if (tagIndex > -1) {
-    counterStore.selectedTags.splice(tagIndex, 1)
-  } else {
-    counterStore.selectedTags.push(index)
-  }
-}
+// const handleTagClick = (index) => {
+//   // 先获取 store 实例
+//   const counterStore = useCounterStore()
+//   // 检查是否已确认（避免重复访问）
+//   if (counterStore.confirmedTags.includes(index)) return
+//   // 检查是否可选择
+//   if (!counterStore.canChoose.includes(index)) return
+//   // 切换选中状态
+//   const tagIndex = counterStore.selectedTags.indexOf(index)
+//   if (tagIndex > -1) {
+//     counterStore.selectedTags.splice(tagIndex, 1)
+//   } else {
+//     counterStore.selectedTags.push(index)
+//   }
+// }
 const getMappedTitle = (pin) => {
   switch (pin) {
     case 'PGND':
       return '这是PGND'
-    case 'B':
-      return 'Engine Plug B pin assignment'
-    case 'C':
-      return 'Engine Plug C pin assignment'
+    case 'FREQ-PS':
+      return '12V+'
+    case 'FREQ1-IN':
+    case 'FREQ2-IN':
+      return '若作为开关量输出只可输出12V+'
     case 'D':
       return 'Engine Plug D pin assignment'
     case 'E':
@@ -262,27 +293,27 @@ const getMappedTitle = (pin) => {
       return ''
   }
 }
+
+const handleMenuClick = (index, Pindex) => {
+  counterStore.pinChoose[Pindex] = counterStore.currentDevice + index
+  counterStore.pinChooseDefine[Pindex] = counterStore.deviceDefine[counterStore.currentDevice]
+}
 </script>
 
 <style scoped>
 /* 可选择的卡片样式 */
 .default-card {
   text-align: center;
-  background-color: white;
+  background-color: rgb(255, 255, 255);
 }
 /* 已选择的卡片样式 */
 .active-card {
   text-align: center;
-  background-color: rgb(52, 152, 219);
+  background-color: rgb(34, 197, 94);
 }
-/* 不可选择的卡片样式 */
-.inactive-card {
-  text-align: center;
-  background-color: rgb(236, 236, 236);
-}
-/* 已确认的卡片样式 */
+/* 推荐的的卡片样式 */
 .used-card {
   text-align: center;
-  background-color: rgb(46, 204, 113);
+  background-color: rgb(33, 150, 243);
 }
 </style>
