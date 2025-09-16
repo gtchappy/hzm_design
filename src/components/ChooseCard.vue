@@ -34,7 +34,7 @@
             </a-popover>
             <a-dropdown :trigger="['click']">
               <div style="text-align: center" class="flex-1 flex flex-col justify-between">
-                <div class="flex items-center justify-center mr-5">
+                <div class="flex items-center justify-center mr-5" :class="{'func-card':counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(a)}">
                   {{ a.split(':')[1] }}
                 </div>
                 <div class="flex items-center justify-center mr-5" style="font-size: 11px">
@@ -43,6 +43,9 @@
                 <div class="flex items-center justify-center mr-5" style="font-size: 11px">
                   {{ counterStore.pinChooseDefine['A' + (Pindex + 1)] }}
                 </div>
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.remark['A' + (Pindex + 1)]}}
+                </div>
               </div>
 
               <template #overlay>
@@ -50,12 +53,23 @@
                   <a-menu-item
                     :key="index"
                     v-for="index in counterStore.devicePinDefine[counterStore.currentDevice]"
-                    @click="handleMenuClick(index, 'A' + (Pindex + 1))"
+                    @click="handleMenuClick(index, 'A' + (Pindex + 1), a)"
                     >{{ index }}</a-menu-item
                   >
                   <a-input-group compact>
-                    <a-input style="width: 150px" />
-                    <a-button type="primary" style="width: 30px text-align:center;">OK</a-button>
+                    <a-input
+                      style="width: 150px"
+                      v-model:value="inputDeviceValue"
+                      @keyup.enter="
+                        handleDeviceConfirmClick(inputDeviceValue, 'A' + (Pindex + 1), a)
+                      "
+                    />
+                    <a-button
+                      type="primary"
+                      style="width: 30px; text-align: center;"
+                      @click="handleDeviceConfirmClick(inputDeviceValue, 'A' + (Pindex + 1), a)"
+                      >OK</a-button
+                    >
                   </a-input-group>
                 </a-menu>
               </template>
@@ -215,7 +229,6 @@
               <div class="flex items-center justify-center mr-5">
                 {{ a.split(':')[1] }}
               </div>
-              <div class="flex items-center justify-center mr-5">{{ 'haha' }}</div>
             </div>
           </a-card-grid>
         </a-card>
@@ -229,6 +242,7 @@
 
 <script setup>
 import { useCounterStore } from '@/stores/counter'
+import { ref } from 'vue'
 const counterStore = useCounterStore()
 // eslint-disable-next-line no-unused-vars
 const props = defineProps({
@@ -261,21 +275,6 @@ const props = defineProps({
     default: '',
   },
 })
-// const handleTagClick = (index) => {
-//   // 先获取 store 实例
-//   const counterStore = useCounterStore()
-//   // 检查是否已确认（避免重复访问）
-//   if (counterStore.confirmedTags.includes(index)) return
-//   // 检查是否可选择
-//   if (!counterStore.canChoose.includes(index)) return
-//   // 切换选中状态
-//   const tagIndex = counterStore.selectedTags.indexOf(index)
-//   if (tagIndex > -1) {
-//     counterStore.selectedTags.splice(tagIndex, 1)
-//   } else {
-//     counterStore.selectedTags.push(index)
-//   }
-// }
 const getMappedTitle = (pin) => {
   switch (pin) {
     case 'PGND':
@@ -294,10 +293,24 @@ const getMappedTitle = (pin) => {
   }
 }
 
-const handleMenuClick = (index, Pindex) => {
+const handleMenuClick = (index, Pindex, a) => {
   counterStore.pinChoose[Pindex] = counterStore.currentDevice + index
   counterStore.pinChooseDefine[Pindex] = counterStore.deviceDefine[counterStore.currentDevice]
+  counterStore.confirmedTags.push(a)
 }
+const handleDeviceConfirmClick = (value, pin, a) => {
+  if (value) {
+    counterStore.remark[pin] = value
+  }else if(confirm('Are you sure?'))
+  {
+      counterStore.confirmedTags = counterStore.confirmedTags.filter((item) => item !== a)
+      counterStore.pinChoose[pin] = ''
+      counterStore.pinChooseDefine[pin] = ''
+      counterStore.remark[pin] = ''
+  }
+  inputDeviceValue.value = ''
+}
+const inputDeviceValue = ref('')
 </script>
 
 <style scoped>
@@ -315,5 +328,8 @@ const handleMenuClick = (index, Pindex) => {
 .used-card {
   text-align: center;
   background-color: rgb(33, 150, 243);
+}
+.func-card {
+background-color: rgb(167, 183, 255);
 }
 </style>

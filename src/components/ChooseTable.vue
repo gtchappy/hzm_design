@@ -1,21 +1,42 @@
 <template>
-  <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top:20px ;">
-    <a-select style="width: 220px" @change="handleChange"  placeholder="显示全部">
-      <a-select-option v-for="(value, key) in counterStore.device" :key="key" :value="key +':'+ value"> {{
-       value
-      }}</a-select-option>
+  <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top: 20px">
+    <a-select style="width: 220px" @change="handleChange" placeholder="显示全部">
+      <a-select-option
+        v-for="(value, key) in counterStore.device"
+        :key="key"
+        :value="key + ':' + value"
+      >
+        {{ key !== '999' ? (Number(key)+1) + ':' + value : value }}</a-select-option
+      >
     </a-select>
-    <ShowDrawer/>
-    <a-tag class="text-base tracking-wider" style="background-color: white;">当前选择:{{ selectedDevice }}</a-tag>
-    <a-tag class="text-base tracking-wider" style="background-color: white;"
-      >定义为:{{ deviceConfig.definitions[selectedDevice] }}</a-tag
-    >
+    <a-select style="width: 220px" @change="handleFunctionChange" placeholder="功能查询">
+      <a-select-option
+        v-for="(functionValue, functionKey) in counterStore.pinFunction"
+        :key="functionKey"
+        :value="functionKey"
+      >
+        {{ functionKey }}</a-select-option
+      >
+    </a-select>
+    <ShowDrawer />
+
+    <a-float-button
+      v-if="deviceConfig.definitions[selectedDevice]"
+      shape="square"
+      :description="selectedDevice + '  定义为  ' + deviceConfig.definitions[selectedDevice]"
+      :style="{
+        bottom: '10px',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        width: '400px',
+      }"
+    ></a-float-button>
   </a-space>
 </template>
 
 <script setup>
 import { ref, defineEmits } from 'vue'
-import { useCounterStore} from '@/stores/counter'
+import { useCounterStore } from '@/stores/counter'
 import ShowDrawer from './ShowDrawer.vue'
 const emit = defineEmits(['emitSelectedDevice'])
 const selectedDevice = ref('')
@@ -27,7 +48,6 @@ const deviceConfig = {
   pins: counterStore.pin,
 }
 
-
 const handleChange = (value) => {
   selectedDevice.value = value.split(':')[1]
   counterStore.canChoose = []
@@ -37,5 +57,10 @@ const handleChange = (value) => {
   emit('emitSelectedDevice', selectedDevice.value)
   counterStore.selectedTags = []
   counterStore.currentDevice = value.split(':')[1]
+}
+const handleFunctionChange = (value) => {
+  counterStore.selectedPinFunc = value
+  console.log(counterStore.selectedPinFunc)
+  console.log(counterStore.pinFunction[counterStore.selectedPinFunc])
 }
 </script>

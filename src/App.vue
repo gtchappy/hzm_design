@@ -1,7 +1,7 @@
 <template>
   <a-layout class="h-[100vh]">
     <!-- 固定头部的头部导航 -->
-    <a-layout-header class="fixed top-0 left-0 right-0 z-10">
+    <a-layout-header class="fixed top-0 left-0 right-0 z-10" @click="headerClick">
       <div class="logo w-30 h-8 bg-[rgb(236,236,236)] float-left m-4">
         <img src="/src/assets/logo.png" alt="logo" class="w-full h-full" />
       </div>
@@ -39,6 +39,13 @@
 <script setup>
 import { ref } from 'vue'
 const selectedKeys = ref(['1'])
+const headerClick = () => {
+  //点击头部时，返回顶部
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  })
+}
 </script>
 
 <style scoped></style>
