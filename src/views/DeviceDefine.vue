@@ -11,8 +11,13 @@
     ></a-select>
     <a-row :gutter="[16, 16]">
       <a-col :span="8" v-for="(item, index) in ItemValues" :key="item">
-        <a-card hoverable :title="index + 1 + ':' + item.split('_')[1]">
+        <a-card hoverable :title="index + 1 + ':' + item.split('_')[1]" style="overflow: hidden;">
           <p>{{ '定义：' + counterStore.deviceDefine[item.split('_')[1]] }}</p>
+          <p>{{ '配置：' + counterStore.device[item.split('_')[0]] }}</p>
+
+
+          <DeviceDefineButton/>
+          <!-- <a-button type="primary" @click="showDrawer">Open</a-button> -->
           <a-button type="primary" class="mr-1" @click="addPin(item)">增加</a-button>
           <a-button danger href="#" @click="removePin(index)">删除</a-button>
         </a-card>
@@ -28,6 +33,7 @@
 import { ref } from 'vue'
 import { useCounterStore } from '@/stores/counter'
 import { customAlphabet } from 'nanoid'
+import DeviceDefineButton from '@/components/DeviceDefineButton.vue'
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 const customNanoid = customAlphabet(alphabet, 3)
 const counterStore = useCounterStore()
@@ -50,7 +56,6 @@ const handleChange = (value) => {
       [id]: ItemValues.value[i].split('_')[1],
     })
   }
-
 }
 
 const addPin = (item) => {

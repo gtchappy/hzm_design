@@ -55,6 +55,9 @@
                 <div class="flex items-center justify-center mr-5" style="font-size: 11px">
                   {{ counterStore.remark['A' + (Pindex + 1)] }}
                 </div>
+                <div>
+                  {{ counterStore.currentDevice }}
+                </div>
               </div>
 
               <template #overlay>
@@ -303,9 +306,13 @@ const getMappedTitle = (pin) => {
 }
 
 const handleMenuClick = (index, Pindex, a) => {
+  console.log('handleMenuClick', counterStore.currentDevice, index, Pindex, a)
   counterStore.pinChoose[Pindex] = counterStore.currentDevice + index
   counterStore.pinChooseDefine[Pindex] = counterStore.deviceDefine[counterStore.currentDevice]
   counterStore.confirmedTags.push(a)
+  //将pinChoose改成编码
+  console.log('handleMenuClick', counterStore.pinChoose)
+  console.log('handleMenuClick', counterStore.pinChooseDefine)
 }
 const handleDeviceConfirmClick = (value, pin, a) => {
   if (value) {
@@ -330,7 +337,7 @@ const inputDeviceValue = ref('')
 /* 已选择的卡片样式 */
 .active-card {
   text-align: center;
-  background-color: rgb(34, 197, 94);
+  background-color: rgb(48, 201, 104);
 }
 /* 推荐的的卡片样式 */
 .used-card {

@@ -6,7 +6,10 @@
         :key="key"
         :value="key + ':' + value"
       >
-        {{ key !== '999' ? getKeyIndex(key) + ':' + value : value }}</a-select-option
+        {{ key !== '999' ? getKeyIndex(key) + ':' + value : value }}
+        {{ key }}
+
+        </a-select-option
       >
     </a-select>
     <a-select style="width: 220px" @change="handleFunctionChange" placeholder="功能查询">

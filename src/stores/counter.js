@@ -1204,6 +1204,8 @@ export const useCounterStore = defineStore('counter', () => {
     E39: '',
 
   }
+  // 最终的设备配置
+  const deviceFinalConfig={}
   const currentDevice = ref('')
     //显示各个功能可选择的针脚
   const pinFunction= {
@@ -1224,6 +1226,7 @@ export const useCounterStore = defineStore('counter', () => {
     pinChooseDefine,
     remark,
     pinFunction,
-    selectedPinFunc
+    selectedPinFunc,
+    deviceFinalConfig
   }
 })

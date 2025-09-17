@@ -1,6 +1,6 @@
 <template>
-  <ChooseTable @emitSelectedDevice="handleSelectedDevice" />
-  <ChooseCard :PLUGA="PLUG_A" :PLUGB="PLUG_B" :PLUGC="PLUG_C" :PLUGD="PLUG_D" :PLUGE="PLUG_E"  />
+    <ChooseTable @emitSelectedDevice="handleSelectedDevice" />
+    <ChooseCard :PLUGA="PLUG_A" :PLUGB="PLUG_B" :PLUGC="PLUG_C" :PLUGD="PLUG_D" :PLUGE="PLUG_E"  />
 </template>
 
 <script setup>
