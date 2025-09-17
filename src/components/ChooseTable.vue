@@ -6,7 +6,7 @@
         :key="key"
         :value="key + ':' + value"
       >
-        {{ key !== '999' ? (Number(key)+1) + ':' + value : value }}</a-select-option
+        {{ key !== '999' ? getKeyIndex(key) + ':' + value : value }}</a-select-option
       >
     </a-select>
     <a-select style="width: 220px" @change="handleFunctionChange" placeholder="功能查询">
@@ -35,7 +35,7 @@
 </template>
 
 <script setup>
-import { ref, defineEmits } from 'vue'
+import { ref, defineEmits, computed } from 'vue'
 import { useCounterStore } from '@/stores/counter'
 import ShowDrawer from './ShowDrawer.vue'
 const emit = defineEmits(['emitSelectedDevice'])
@@ -49,18 +49,52 @@ const deviceConfig = {
 }
 
 const handleChange = (value) => {
-  selectedDevice.value = value.split(':')[1]
-  counterStore.canChoose = []
-  deviceConfig.pinDefinitions[value.split(':')[1]]?.forEach((pinType) => {
-    counterStore.canChoose.push(...deviceConfig.pins[pinType])
-  })
-  emit('emitSelectedDevice', selectedDevice.value)
-  counterStore.selectedTags = []
-  counterStore.currentDevice = value.split(':')[1]
+  try {
+    // 检查value是否有效
+    if (!value) {
+      console.warn('No device selected');
+      return;
+    }
+
+    const parts = value.split(':');
+    const deviceValue = parts.length > 1 ? parts[1] : parts[0];
+    selectedDevice.value = deviceValue;
+
+    // console.log('Selected device:', deviceValue);
+
+    counterStore.canChoose = [];
+
+    // 安全地访问deviceConfig.pinDefinitions
+    const pinDefinitions = deviceConfig.pinDefinitions[deviceValue];
+    if (pinDefinitions && Array.isArray(pinDefinitions)) {
+      pinDefinitions.forEach((pinType) => {
+        // 安全地访问deviceConfig.pins
+        if (deviceConfig.pins && deviceConfig.pins[pinType] && Array.isArray(deviceConfig.pins[pinType])) {
+          counterStore.canChoose.push(...deviceConfig.pins[pinType]);
+        } else {
+          // console.warn(`Pin type ${pinType} not found or is not an array`);
+        }
+      });
+    } else {
+      console.warn(`No pin definitions found for device ${deviceValue}`);
+    }
+
+    // 触发事件
+    emit('emitSelectedDevice', selectedDevice.value);
+    counterStore.selectedTags = [];
+    counterStore.currentDevice = deviceValue;
+  } catch (error) {
+    console.error('Error in handleChange:', error);
+    // 可选：根据需要添加用户友好的错误提示
+  }
 }
 const handleFunctionChange = (value) => {
   counterStore.selectedPinFunc = value
   console.log(counterStore.selectedPinFunc)
   console.log(counterStore.pinFunction[counterStore.selectedPinFunc])
+}
+const deviceKeys = computed(() => Object.keys(counterStore.device))
+const getKeyIndex = (key) => {
+  return deviceKeys.value.indexOf(key)
 }
 </script>

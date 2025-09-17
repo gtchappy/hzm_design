@@ -13,6 +13,10 @@ const PLUG_B = ref([...PLUG_B_PIN])
 const PLUG_C = ref([...PLUG_C_PIN])
 const PLUG_D = ref([...PLUG_D_PIN])
 const PLUG_E = ref([...PLUG_E_PIN])
+const handleSelectedDevice = function(device) {
+  console.log('Selected device:', device)
+  // 在这里添加处理选中设备的逻辑
+}
 
 
 

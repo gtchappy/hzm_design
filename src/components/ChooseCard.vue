@@ -34,17 +34,26 @@
             </a-popover>
             <a-dropdown :trigger="['click']">
               <div style="text-align: center" class="flex-1 flex flex-col justify-between">
-                <div class="flex items-center justify-center mr-5" :class="{'func-card':counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(a)}">
+                <div
+                  class="flex items-center justify-center mr-5"
+                  :class="{
+                    'func-card':
+                      counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(a),
+                  }"
+                >
                   {{ a.split(':')[1] }}
                 </div>
+                <!-- 选择的引脚 -->
                 <div class="flex items-center justify-center mr-5" style="font-size: 11px">
                   {{ counterStore.pinChoose['A' + (Pindex + 1)] }}
                 </div>
+                <!-- 定义 -->
                 <div class="flex items-center justify-center mr-5" style="font-size: 11px">
                   {{ counterStore.pinChooseDefine['A' + (Pindex + 1)] }}
                 </div>
+                <!-- 备注 -->
                 <div class="flex items-center justify-center mr-5" style="font-size: 11px">
-                  {{ counterStore.remark['A' + (Pindex + 1)]}}
+                  {{ counterStore.remark['A' + (Pindex + 1)] }}
                 </div>
               </div>
 
@@ -66,7 +75,7 @@
                     />
                     <a-button
                       type="primary"
-                      style="width: 30px; text-align: center;"
+                      style=" text-align: center"
                       @click="handleDeviceConfirmClick(inputDeviceValue, 'A' + (Pindex + 1), a)"
                       >OK</a-button
                     >
@@ -301,12 +310,11 @@ const handleMenuClick = (index, Pindex, a) => {
 const handleDeviceConfirmClick = (value, pin, a) => {
   if (value) {
     counterStore.remark[pin] = value
-  }else if(confirm('Are you sure?'))
-  {
-      counterStore.confirmedTags = counterStore.confirmedTags.filter((item) => item !== a)
-      counterStore.pinChoose[pin] = ''
-      counterStore.pinChooseDefine[pin] = ''
-      counterStore.remark[pin] = ''
+  } else if (confirm('Are you sure?')) {
+    counterStore.confirmedTags = counterStore.confirmedTags.filter((item) => item !== a)
+    counterStore.pinChoose[pin] = ''
+    counterStore.pinChooseDefine[pin] = ''
+    counterStore.remark[pin] = ''
   }
   inputDeviceValue.value = ''
 }
@@ -330,6 +338,6 @@ const inputDeviceValue = ref('')
   background-color: rgb(33, 150, 243);
 }
 .func-card {
-background-color: rgb(167, 183, 255);
+  background-color: rgb(167, 183, 255);
 }
 </style>
