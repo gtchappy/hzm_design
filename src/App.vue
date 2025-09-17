@@ -37,8 +37,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-const selectedKeys = ref(['1'])
+import { ref, onMounted } from 'vue'
+import router from '@/router'
+// const selectedKeys = ref(['1'])
 const headerClick = () => {
   //点击头部时，返回顶部
   window.scrollTo({
@@ -46,6 +47,31 @@ const headerClick = () => {
     behavior: 'smooth',
   })
 }
+
+// 根据当前路由设置初始选中项
+const getInitialSelectedKey = () => {
+  const currentPath = router.currentRoute.value.path
+  if (currentPath === '/deviceDefine') return ['1']
+  if (currentPath === '/mvc') return ['2']
+  if (currentPath === '/xios') return ['3']
+  return ['1'] // 默认选中第一个
+}
+
+const selectedKeys = ref(getInitialSelectedKey())
+
+// 监听路由变化，更新选中项
+onMounted(() => {
+  router.afterEach((to) => {
+    if (to.path === '/deviceDefine') {
+      selectedKeys.value = ['1']
+    } else if (to.path === '/mvc') {
+      selectedKeys.value = ['2']
+    } else if (to.path === '/xios') {
+      selectedKeys.value = ['3']
+    }
+  })
+})
+
 </script>
 
 <style scoped></style>
