@@ -1,5 +1,6 @@
 <template>
   <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top: 20px">
+    <!-- 用来选择设备配置 -->
     <a-select style="width: 220px" @change="handleChange" placeholder="显示全部">
       <a-select-option
         v-for="(value, key) in counterStore.device"
@@ -12,6 +13,7 @@
         </a-select-option
       >
     </a-select>
+    <!-- 用来选择功能 -->
     <a-select style="width: 220px" @change="handleFunctionChange" placeholder="功能查询">
       <a-select-option
         v-for="(functionValue, functionKey) in counterStore.pinFunction"
@@ -58,7 +60,8 @@ const handleChange = (value) => {
       console.warn('No device selected');
       return;
     }
-
+    // 提取设备id
+    counterStore.selectedId = getPrefix(value);
     const parts = value.split(':');
     const deviceValue = parts.length > 1 ? parts[1] : parts[0];
     selectedDevice.value = deviceValue;
@@ -100,4 +103,15 @@ const deviceKeys = computed(() => Object.keys(counterStore.device))
 const getKeyIndex = (key) => {
   return deviceKeys.value.indexOf(key)
 }
+function getPrefix(str) {
+  // 找到冒号的位置
+  const colonIndex = str.indexOf(':');
+
+  // 如果找到了冒号，返回冒号前面的部分，否则返回原始字符串
+  if (colonIndex !== -1) {
+    return str.substring(0, colonIndex);
+  }
+  return str;
+}
+
 </script>

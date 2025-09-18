@@ -11,12 +11,11 @@
     ></a-select>
     <a-row :gutter="[16, 16]">
       <a-col :span="8" v-for="(item, index) in ItemValues" :key="item">
-        <a-card hoverable :title="index + 1 + ':' + item.split('_')[1]" style="overflow: hidden;">
+        <a-card hoverable :title="index + 1 + ':' + item.split('_')[1]" style="overflow: hidden">
           <p>{{ '定义：' + counterStore.deviceDefine[item.split('_')[1]] }}</p>
           <p>{{ '配置：' + counterStore.device[item.split('_')[0]] }}</p>
 
-
-          <DeviceDefineButton/>
+          <DeviceDefineButton />
           <!-- <a-button type="primary" @click="showDrawer">Open</a-button> -->
           <a-button type="primary" class="mr-1" @click="addPin(item)">增加</a-button>
           <a-button danger href="#" @click="removePin(index)">删除</a-button>
@@ -67,8 +66,39 @@ const addPin = (item) => {
     })
   }
 }
+//用来检查counterStore.confirmedTags中是否有counterStore.selectedId
+const getMatchingIds = (arr, content) =>
+  arr.reduce((ids, str, i) => (str.includes(content) ? [...ids, i] : ids), [])
 
 const removePin = (index) => {
+  console.log('removePin', index)
+  console.log('removePin', ItemValues.value[index].split('_')[0])
+  const needRemoveId = ItemValues.value[index].split('_')[0]
+  //删除counterStore.selectedIdDefine中counterStore.selectedId对应的元素
+
+  // 添加检查，确保counterStore.selectedIdDefine[needRemoveId]存在
+  const targetObject = counterStore.selectedIdDefine[needRemoveId] || {}
+  for (const [key, value] of Object.entries(targetObject)) {
+    console.log('key', key)
+    console.log('value', value)
+    if (value) {
+      counterStore.pinChoose[value] = ''
+
+      counterStore.pinChooseDefine[value] = ''
+
+      counterStore.remark[value] = ''
+      //将counterStore.confirmedTags中counterStore.selectedId对应的元素删除
+      let matchingIds = getMatchingIds(counterStore.confirmedTags, value)
+      if (matchingIds.length > 0) {
+        console.log('matchingIds', matchingIds)
+        counterStore.confirmedTags.splice(matchingIds[0], 1)
+      }
+    }
+  }
+
+  counterStore.selectedIdDefine[needRemoveId] = []
+  console.log('removePin', counterStore.selectedIdDefine)
+
   ItemValues.value.splice(index, 1)
   counterStore.device = { 999: '显示全部' }
   for (let i = 0; i < ItemValues.value.length; i++) {
@@ -87,7 +117,6 @@ const removePin = (index) => {
   })
   // console.log(processedArray)
   const uniqueArray = [...new Set(processedArray)]
-  console.log(uniqueArray)
   selectDeviceValue.value = uniqueArray
   handleChange(selectDeviceValue.value)
 }

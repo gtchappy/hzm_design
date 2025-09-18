@@ -55,9 +55,6 @@
                 <div class="flex items-center justify-center mr-5" style="font-size: 11px">
                   {{ counterStore.remark['A' + (Pindex + 1)] }}
                 </div>
-                <div>
-                  {{ counterStore.currentDevice }}
-                </div>
               </div>
 
               <template #overlay>
@@ -310,9 +307,14 @@ const handleMenuClick = (index, Pindex, a) => {
   counterStore.pinChoose[Pindex] = counterStore.currentDevice + index
   counterStore.pinChooseDefine[Pindex] = counterStore.deviceDefine[counterStore.currentDevice]
   counterStore.confirmedTags.push(a)
+  console.log('confirmTags', counterStore.confirmedTags)
   //将pinChoose改成编码
-  console.log('handleMenuClick', counterStore.pinChoose)
-  console.log('handleMenuClick', counterStore.pinChooseDefine)
+  //记录选中设备的最终定义,在counterStore.selectedIdDefine这个对象中，添加counterStore.selectedId:Pindex
+  if (!counterStore.selectedIdDefine[counterStore.selectedId]) {
+    counterStore.selectedIdDefine[counterStore.selectedId] = []
+  }
+  counterStore.selectedIdDefine[counterStore.selectedId].push(Pindex)
+  console.log('handleMenuClick', counterStore.selectedIdDefine)
 }
 const handleDeviceConfirmClick = (value, pin, a) => {
   if (value) {

@@ -1213,6 +1213,9 @@ export const useCounterStore = defineStore('counter', () => {
     'AO': ['A2:PWMO1-(OUT+)'],
   }
   const selectedPinFunc = ref('')
+  // 选中的设备id
+  const selectedId = ref('')
+  const selectedIdDefine = {}
   return {
     selectedTags,
     confirmedTags,
@@ -1227,6 +1230,8 @@ export const useCounterStore = defineStore('counter', () => {
     remark,
     pinFunction,
     selectedPinFunc,
-    deviceFinalConfig
+    deviceFinalConfig,
+    selectedId,
+    selectedIdDefine
   }
 })
