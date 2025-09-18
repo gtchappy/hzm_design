@@ -318,18 +318,8 @@ export const useCounterStore = defineStore('counter', () => {
       'E39:SHIELD',
     ],
     GND: ['A54:GND', 'A58:PGND'],
-    Signal: [
-      'B1:SPEED-PS',
-      'B2:SPEED1-IN',
-      'B3:GND',
-      'B4:FO1-OUT',
-      'B5:SPEED-PS',
-      'B6:SPEED2-IN',
-      'B7:GND',
-      'B8:GND',
-      'B9:INDEX-PS',
-    ],
-    '12V+': ['B1:SPEED-PS'],
+    Signal: ['B2:SPEED1-IN', 'B6:SPEED2-IN'],
+    '12V+': ['B1:SPEED-PS', 'B5:SPEED-PS'],
     AI: ['A1:PWMI1-(IN+)'],
   }
   const pinChoose = {

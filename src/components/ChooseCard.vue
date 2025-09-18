@@ -75,7 +75,7 @@
                     />
                     <a-button
                       type="primary"
-                      style=" text-align: center"
+                      style="text-align: center"
                       @click="handleDeviceConfirmClick(inputDeviceValue, 'A' + (Pindex + 1), a)"
                       >OK</a-button
                     >
@@ -86,20 +86,19 @@
           </a-card-grid>
         </a-card>
       </a-col>
-      <a-col :span="12" :style="{ marginTop: '30px' }">
+       <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug B pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, index) in PLUGB"
+            v-for="(a, Pindex) in PLUGB"
             :key="a"
             :class="{
               'default-card': 1,
-              'active-card': counterStore.selectedTags.includes(a),
-              'inactive-card': !counterStore.canChoose.includes(a),
+              'active-card': counterStore.canChoose.includes(a),
+              // 'inactive-card': !counterStore.canChoose.includes(a),
               'used-card': counterStore.confirmedTags.includes(a),
             }"
-            @click="handleTagClick(a)"
             :style="
-              index > 55
+              Pindex > 55
                 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
                 : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
             "
@@ -115,31 +114,76 @@
                   font-weight: 500;
                 "
               >
-                {{ 'B' + (index + 1) }}
+                {{ 'B' + (Pindex + 1) }}
               </a-avatar>
             </a-popover>
-            <div style="text-align: center" class="flex-1 flex justify-center">
-              <div class="flex items-center justify-center mr-5">
-                {{ a.split(':')[1] }}
+            <a-dropdown :trigger="['click']">
+              <div style="text-align: center" class="flex-1 flex flex-col justify-between">
+                <div
+                  class="flex items-center justify-center mr-5"
+                  :class="{
+                    'func-card':
+                      counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(a),
+                  }"
+                >
+                  {{ a.split(':')[1] }}
+                </div>
+                <!-- 选择的引脚 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChoose['B' + (Pindex + 1)] }}
+                </div>
+                <!-- 定义 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChooseDefine['B' + (Pindex + 1)] }}
+                </div>
+                <!-- 备注 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.remark['B' + (Pindex + 1)] }}
+                </div>
               </div>
-            </div>
+
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item
+                    :key="index"
+                    v-for="index in counterStore.devicePinDefine[counterStore.currentDevice]"
+                    @click="handleMenuClick(index, 'B' + (Pindex + 1), a)"
+                    >{{ index }}</a-menu-item
+                  >
+                  <a-input-group compact>
+                    <a-input
+                      style="width: 150px"
+                      v-model:value="inputDeviceValue"
+                      @keyup.enter="
+                        handleDeviceConfirmClick(inputDeviceValue, 'B' + (Pindex + 1), a)
+                      "
+                    />
+                    <a-button
+                      type="primary"
+                      style="text-align: center"
+                      @click="handleDeviceConfirmClick(inputDeviceValue, 'B' + (Pindex + 1), a)"
+                      >OK</a-button
+                    >
+                  </a-input-group>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </a-card-grid>
         </a-card>
       </a-col>
-      <a-col :span="12" :style="{ marginTop: '30px' }">
+     <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug C pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, index) in PLUGC"
+            v-for="(a, Pindex) in PLUGC"
             :key="a"
             :class="{
               'default-card': 1,
-              'active-card': counterStore.selectedTags.includes(a),
-              'inactive-card': !counterStore.canChoose.includes(a),
+              'active-card': counterStore.canChoose.includes(a),
+              // 'inactive-card': !counterStore.canChoose.includes(a),
               'used-card': counterStore.confirmedTags.includes(a),
             }"
-            @click="handleTagClick(a)"
             :style="
-              index > 55
+              Pindex > 55
                 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
                 : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
             "
@@ -148,38 +192,83 @@
             <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
               <a-avatar
                 style="
-                  background-color: rgb(253, 228, 132);
+                   background-color: rgb(253, 228, 132);
                   color: rgb(0, 0, 0);
                   margin-left: 10px;
                   font-size: 13px;
                   font-weight: 500;
                 "
               >
-                {{ 'C' + (index + 1) }}
+                {{ 'C' + (Pindex + 1) }}
               </a-avatar>
             </a-popover>
-            <div style="text-align: center" class="flex-1 flex justify-center">
-              <div class="flex items-center justify-center mr-5">
-                {{ a.split(':')[1] }}
+            <a-dropdown :trigger="['click']">
+              <div style="text-align: center" class="flex-1 flex flex-col justify-between">
+                <div
+                  class="flex items-center justify-center mr-5"
+                  :class="{
+                    'func-card':
+                      counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(a),
+                  }"
+                >
+                  {{ a.split(':')[1] }}
+                </div>
+                <!-- 选择的引脚 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChoose['C' + (Pindex + 1)] }}
+                </div>
+                <!-- 定义 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChooseDefine['C' + (Pindex + 1)] }}
+                </div>
+                <!-- 备注 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.remark['C' + (Pindex + 1)] }}
+                </div>
               </div>
-            </div>
+
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item
+                    :key="index"
+                    v-for="index in counterStore.devicePinDefine[counterStore.currentDevice]"
+                    @click="handleMenuClick(index, 'C' + (Pindex + 1), a)"
+                    >{{ index }}</a-menu-item
+                  >
+                  <a-input-group compact>
+                    <a-input
+                      style="width: 150px"
+                      v-model:value="inputDeviceValue"
+                      @keyup.enter="
+                        handleDeviceConfirmClick(inputDeviceValue, 'C' + (Pindex + 1), a)
+                      "
+                    />
+                    <a-button
+                      type="primary"
+                      style="text-align: center"
+                      @click="handleDeviceConfirmClick(inputDeviceValue, 'C' + (Pindex + 1), a)"
+                      >OK</a-button
+                    >
+                  </a-input-group>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </a-card-grid>
         </a-card>
       </a-col>
-      <a-col :span="12" :style="{ marginTop: '30px' }">
+   <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug D pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, index) in PLUGD"
+            v-for="(a, Pindex) in PLUGD"
             :key="a"
             :class="{
               'default-card': 1,
-              'active-card': counterStore.selectedTags.includes(a),
-              'inactive-card': !counterStore.canChoose.includes(a),
+              'active-card': counterStore.canChoose.includes(a),
+              // 'inactive-card': !counterStore.canChoose.includes(a),
               'used-card': counterStore.confirmedTags.includes(a),
             }"
-            @click="handleTagClick(a)"
             :style="
-              index > 55
+              Pindex > 55
                 ? { width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }
                 : { width: '25%', height: '70px', padding: '0px 0px 0px 0px' }
             "
@@ -188,36 +277,81 @@
             <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
               <a-avatar
                 style="
-                  background-color: rgb(184, 230, 254);
+     background-color: rgb(184, 230, 254);
                   color: rgb(0, 0, 0);
                   margin-left: 10px;
                   font-size: 13px;
                   font-weight: 500;
                 "
               >
-                {{ 'D' + (index + 1) }}
+                {{ 'D' + (Pindex + 1) }}
               </a-avatar>
             </a-popover>
-            <div style="text-align: center" class="flex-1 flex justify-center">
-              <div class="flex items-center justify-center mr-5">
-                {{ a.split(':')[1] }}
+            <a-dropdown :trigger="['click']">
+              <div style="text-align: center" class="flex-1 flex flex-col justify-between">
+                <div
+                  class="flex items-center justify-center mr-5"
+                  :class="{
+                    'func-card':
+                      counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(a),
+                  }"
+                >
+                  {{ a.split(':')[1] }}
+                </div>
+                <!-- 选择的引脚 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChoose['D' + (Pindex + 1)] }}
+                </div>
+                <!-- 定义 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChooseDefine['D' + (Pindex + 1)] }}
+                </div>
+                <!-- 备注 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.remark['D' + (Pindex + 1)] }}
+                </div>
               </div>
-            </div>
+
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item
+                    :key="index"
+                    v-for="index in counterStore.devicePinDefine[counterStore.currentDevice]"
+                    @click="handleMenuClick(index, 'D' + (Pindex + 1), a)"
+                    >{{ index }}</a-menu-item
+                  >
+                  <a-input-group compact>
+                    <a-input
+                      style="width: 150px"
+                      v-model:value="inputDeviceValue"
+                      @keyup.enter="
+                        handleDeviceConfirmClick(inputDeviceValue, 'D' + (Pindex + 1), a)
+                      "
+                    />
+                    <a-button
+                      type="primary"
+                      style="text-align: center"
+                      @click="handleDeviceConfirmClick(inputDeviceValue, 'D' + (Pindex + 1), a)"
+                      >OK</a-button
+                    >
+                  </a-input-group>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </a-card-grid>
         </a-card>
       </a-col>
-      <a-col :span="12" :style="{ marginTop: '30px' }">
+         <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug E pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, index) in PLUGE"
+            v-for="(a, Pindex) in PLUGE"
             :key="a"
             :class="{
               'default-card': 1,
-              'active-card': counterStore.selectedTags.includes(a),
-              'inactive-card': !counterStore.canChoose.includes(a),
+              'active-card': counterStore.canChoose.includes(a),
+              // 'inactive-card': !counterStore.canChoose.includes(a),
               'used-card': counterStore.confirmedTags.includes(a),
             }"
-            @click="handleTagClick(a)"
             :style="{ width: '33.3333%', height: '70px', padding: '0px 0px 0px 0px' }"
             class="flex items-center"
           >
@@ -231,14 +365,60 @@
                   font-weight: 500;
                 "
               >
-                {{ 'E' + (index + 1) }}
+                {{ 'E' + (Pindex + 1) }}
               </a-avatar>
             </a-popover>
-            <div style="text-align: center" class="flex-1 flex flex-col justify-between">
-              <div class="flex items-center justify-center mr-5">
-                {{ a.split(':')[1] }}
+            <a-dropdown :trigger="['click']">
+              <div style="text-align: center" class="flex-1 flex flex-col justify-between">
+                <div
+                  class="flex items-center justify-center mr-5"
+                  :class="{
+                    'func-card':
+                      counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(a),
+                  }"
+                >
+                  {{ a.split(':')[1] }}
+                </div>
+                <!-- 选择的引脚 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChoose['E' + (Pindex + 1)] }}
+                </div>
+                <!-- 定义 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.pinChooseDefine['E' + (Pindex + 1)] }}
+                </div>
+                <!-- 备注 -->
+                <div class="flex items-center justify-center mr-5" style="font-size: 11px">
+                  {{ counterStore.remark['E' + (Pindex + 1)] }}
+                </div>
               </div>
-            </div>
+
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item
+                    :key="index"
+                    v-for="index in counterStore.devicePinDefine[counterStore.currentDevice]"
+                    @click="handleMenuClick(index, 'E' + (Pindex + 1), a)"
+                    >{{ index }}</a-menu-item
+                  >
+                  <a-input-group compact>
+                    <a-input
+                      style="width: 150px"
+                      v-model:value="inputDeviceValue"
+                      @keyup.enter="
+                        handleDeviceConfirmClick(inputDeviceValue, 'E' + (Pindex + 1), a)
+                      "
+                    />
+                    <a-button
+                      type="primary"
+                      style="text-align: center"
+                      @click="handleDeviceConfirmClick(inputDeviceValue, 'E' + (Pindex + 1), a)"
+                      >OK</a-button
+                    >
+                  </a-input-group>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </a-card-grid>
         </a-card>
       </a-col>
