@@ -140,7 +140,6 @@ const ItemValues = ref([])
 const options = [
   { value: '霍尔转速传感器', label: '霍尔转速传感器' },
   { value: '磁电式传感器', label: '磁电式传感器' },
-  { value: '选项三', label: '选项三' },
 ]
 const selectDeviceValue = ref([])
 </script>

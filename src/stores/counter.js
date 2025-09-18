@@ -25,7 +25,7 @@ export const useCounterStore = defineStore('counter', () => {
     霍尔转速传感器: ['12V+', 'GND', 'Signal'],
     磁电式传感器: ['Signal', 'GND'],
   }
-  const devicePinDefineFunc=['12V+', 'GND', 'Signal']
+  const devicePinDefineFunc = ['12V+', 'GND', 'Signal']
   //配置各个功能可选择的针脚
   const pin = {
     All: [
@@ -318,9 +318,19 @@ export const useCounterStore = defineStore('counter', () => {
       'E39:SHIELD',
     ],
     GND: ['A54:GND', 'A58:PGND'],
-    Signal: ['A1:PWMI1-(IN+)', 'A2:PWMI1-(IN-)'],
-    '12V+': ['A18:RS232-T'],
-    'AI': ['A1:PWMI1-(IN+)'],
+    Signal: [
+      'B1:SPEED-PS',
+      'B2:SPEED1-IN',
+      'B3:GND',
+      'B4:FO1-OUT',
+      'B5:SPEED-PS',
+      'B6:SPEED2-IN',
+      'B7:GND',
+      'B8:GND',
+      'B9:INDEX-PS',
+    ],
+    '12V+': ['B1:SPEED-PS'],
+    AI: ['A1:PWMI1-(IN+)'],
   }
   const pinChoose = {
     A1: '',
@@ -910,7 +920,7 @@ export const useCounterStore = defineStore('counter', () => {
     E38: '',
     E39: '',
   }
-  const remark={
+  const remark = {
     A1: '',
     A2: '',
     A3: '',
@@ -1203,15 +1213,40 @@ export const useCounterStore = defineStore('counter', () => {
     E37: '',
     E38: '',
     E39: '',
-
   }
   // 最终的设备配置
-  const deviceFinalConfig={}
+  const deviceFinalConfig = {}
   const currentDevice = ref('')
-    //显示各个功能可选择的针脚
-  const pinFunction= {
-    'AI': ['A1:PWMI1-(IN+)','A2:PWMI1-(IN-)'],
-    'AO': ['A2:PWMO1-(OUT+)'],
+  //显示各个功能可选择的针脚
+  const pinFunction = {
+    'Analogue Input(0-5V)': ['A1:PWMI1-(IN+)', 'A2:PWMI1-(IN-)'],
+    'Analogue Input(4-20mA)': ['A2:PWMO1-(OUT+)'],
+    'Analogue Input(0-36V)': ['A2:PWMO1-(OUT+)'],
+    'Analogue Feedback Input': ['A2:PWMO1-(OUT+)'],
+    'Analogue Output(0-5V)': ['A2:DO2-(OUT+)'],
+    'Analogue Output(4-20mA)': ['A2:DO2-(OUT+)'],
+    'Binary Input': ['A1:DI1-(IN+)', 'A2:DI2-(IN-)'],
+    'Binary Output(Half Bridge)': ['A2:DO2-(OUT+)'],
+    'Binary Output(High Side)': ['A2:DO2-(OUT+)'],
+    'Current Output(Half Bridge)': ['A2:DO2-(OUT+)'],
+    'Current Output(Half Bridge with Shut Down)': ['A2:DO2-(OUT+)'],
+    'Elysion Feedback Input': [],
+    'Frequency Input': [],
+    'Full Bridge': ['A2:DO2-(OUT+)'],
+    'Frequency Output(Speed Input 1)': ['A2:DO2-(OUT+)'],
+    'Frequency Output(Speed Input 2)': ['A2:DO2-(OUT+)'],
+    'Frequency Output(Index Input)': ['A2:DO2-(OUT+)'],
+    'Frequency Output(Frequency Input 1)': ['A2:DO2-(OUT+)'],
+    'Frequency Output(Frequency Input 2)': ['A2:DO2-(OUT+)'],
+    'PWM Input': [],
+    'PWM Output': ['A2:DO2-(OUT+)'],
+    'Temperature Input(PT100)': [],
+    'Temperature Input(PT200)': [],
+    'Temperature Input(PT1000)': [],
+    'Temperature Input(Ni1000)': [],
+    'Temperature Input(NTC)': [],
+    'Temperature Input(Type J)': [],
+    'Temperature Input(Type K)': [],
   }
   const selectedPinFunc = ref('')
   // 选中的设备id
@@ -1234,6 +1269,6 @@ export const useCounterStore = defineStore('counter', () => {
     deviceFinalConfig,
     selectedId,
     selectedIdDefine,
-    devicePinDefineFunc
+    devicePinDefineFunc,
   }
 })
