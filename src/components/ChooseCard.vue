@@ -4,7 +4,7 @@
       <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug A pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, Pindex) in PLUGA"
+            v-for="(a, Pindex) in counterStore.PLUG_A_PIN"
             :key="a"
             :class="{
               'default-card': 1,
@@ -89,7 +89,7 @@
       <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug B pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, Pindex) in PLUGB"
+            v-for="(a, Pindex) in counterStore.PLUG_B_PIN"
             :key="a"
             :class="{
               'default-card': 1,
@@ -174,7 +174,7 @@
       <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug C pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, Pindex) in PLUGC"
+            v-for="(a, Pindex) in counterStore.PLUG_C_PIN"
             :key="a"
             :class="{
               'default-card': 1,
@@ -259,7 +259,7 @@
       <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug D pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, Pindex) in PLUGD"
+            v-for="(a, Pindex) in counterStore.PLUG_D_PIN"
             :key="a"
             :class="{
               'default-card': 1,
@@ -344,7 +344,7 @@
       <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug E pin assignment" :bordered="false">
           <a-card-grid
-            v-for="(a, Pindex) in PLUGE"
+            v-for="(a, Pindex) in counterStore.PLUG_E_PIN"
             :key="a"
             :class="{
               'default-card': 1,
