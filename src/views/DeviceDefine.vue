@@ -18,7 +18,7 @@
           <DeviceDefineButton  :device="item.split('_')[1]" />
           <!-- <a-button type="primary" @click="showDrawer">Open</a-button> -->
           <a-button type="primary" class="mr-1" @click="addPin(item)">增加</a-button>
-          <a-button danger href="#" @click="removePin(index)">删除</a-button>
+          <a-button danger @click="removePin(index)">删除</a-button>
         </a-card>
       </a-col>
     </a-row>
@@ -71,8 +71,6 @@ const getMatchingIds = (arr, content) =>
   arr.reduce((ids, str, i) => (str.includes(content) ? [...ids, i] : ids), [])
 
 const removePin = (index) => {
-  console.log('removePin', index)
-  console.log('removePin', ItemValues.value[index].split('_')[0])
   const needRemoveId = ItemValues.value[index].split('_')[0]
   //删除counterStore.selectedIdDefine中counterStore.selectedId对应的元素
 
@@ -97,8 +95,6 @@ const removePin = (index) => {
   }
 
   counterStore.selectedIdDefine[needRemoveId] = []
-  console.log('removePin', counterStore.selectedIdDefine)
-
   ItemValues.value.splice(index, 1)
   counterStore.device = { 999: '显示全部' }
   for (let i = 0; i < ItemValues.value.length; i++) {

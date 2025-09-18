@@ -1,12 +1,19 @@
-import { createRouter, createWebHistory } from 'vue-router'
+// 首先添加必要的导入
+import { createRouter, createWebHashHistory } from 'vue-router'
 import MVC01_24 from '@/views/MVC01-24.vue'
 import XIOS01 from '@/views/XIOS-UC1.vue'
 import NOFOUND from '@/views/NOFOUND.vue'
 import DeviceDefine from '@/views/DeviceDefine.vue'
 
+// 在createRouter配置中使用createWebHashHistory
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory('/'), // 这里配置hash模式路由
   routes: [
+    // 添加根路径重定向规则
+    {
+      path: '/',
+      redirect: '/deviceDefine',
+    },
     {
       path: '/deviceDefine',
       name: 'deviceDefine',

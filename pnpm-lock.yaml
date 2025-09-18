@@ -57,6 +57,9 @@ importers:
       vite:
         specifier: ^7.0.6
         version: 7.0.6(jiti@1.21.7)(yaml@2.8.0)
+      vite-plugin-singlefile:
+        specifier: ^2.3.0
+        version: 2.3.0(rollup@4.46.2)(vite@7.0.6(jiti@1.21.7)(yaml@2.8.0))
       vite-plugin-vue-devtools:
         specifier: ^8.0.0
         version: 8.0.0(vite@7.0.6(jiti@1.21.7)(yaml@2.8.0))(vue@3.5.18)
@@ -1685,6 +1688,13 @@ packages:
     peerDependenciesMeta:
       '@nuxt/kit':
         optional: true
+
+  vite-plugin-singlefile@2.3.0:
+    resolution: {integrity: sha512-DAcHzYypM0CasNLSz/WG0VdKOCxGHErfrjOoyIPiNxTPTGmO6rRD/te93n1YL/s+miXq66ipF1brMBikf99c6A==}
+    engines: {node: '>18.0.0'}
+    peerDependencies:
+      rollup: ^4.44.1
+      vite: ^5.4.11 || ^6.0.0 || ^7.0.0
 
   vite-plugin-vue-devtools@8.0.0:
     resolution: {integrity: sha512-9bWQig8UMu3nPbxX86NJv56aelpFYoBHxB5+pxuQz3pa3Tajc1ezRidj/0dnADA4/UHuVIfwIVYHOvMXYcPshg==}
@@ -3377,6 +3387,12 @@ snapshots:
       vite-dev-rpc: 1.1.0(vite@7.0.6(jiti@1.21.7)(yaml@2.8.0))
     transitivePeerDependencies:
       - supports-color
+
+  vite-plugin-singlefile@2.3.0(rollup@4.46.2)(vite@7.0.6(jiti@1.21.7)(yaml@2.8.0)):
+    dependencies:
+      micromatch: 4.0.8
+      rollup: 4.46.2
+      vite: 7.0.6(jiti@1.21.7)(yaml@2.8.0)
 
   vite-plugin-vue-devtools@8.0.0(vite@7.0.6(jiti@1.21.7)(yaml@2.8.0))(vue@3.5.18):
     dependencies:
