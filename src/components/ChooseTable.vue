@@ -1,7 +1,7 @@
 <template>
   <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top: 20px">
     <!-- 用来选择设备配置 -->
-    <a-select style="width: 220px" @change="handleChange" placeholder="显示全部">
+    <a-select style="width: 350px" @change="handleChange" placeholder="显示全部" >
       <a-select-option
         v-for="(value, key) in counterStore.device"
         :key="key"
@@ -12,7 +12,7 @@
       >
     </a-select>
     <!-- 用来选择功能 -->
-    <a-select style="width: 220px" @change="handleFunctionChange" placeholder="功能查询">
+    <a-select style="width: 350px" @change="handleFunctionChange" placeholder="功能查询">
       <a-select-option
         v-for="(functionValue, functionKey) in counterStore.pinFunction"
         :key="functionKey"

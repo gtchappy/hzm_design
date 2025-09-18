@@ -23,9 +23,9 @@
       </a-col>
     </a-row>
   </div>
-  {{ counterStore.device }}
+  <!-- {{ counterStore.device }}
   {{ ItemValues }}
-  {{ selectDeviceValue }}
+  {{ selectDeviceValue }} -->
 </template>
 
 <script setup>

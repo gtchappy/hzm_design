@@ -86,7 +86,7 @@
           </a-card-grid>
         </a-card>
       </a-col>
-       <a-col :span="12" :style="{ marginTop: '30px' }">
+      <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug B pin assignment" :bordered="false">
           <a-card-grid
             v-for="(a, Pindex) in PLUGB"
@@ -171,7 +171,7 @@
           </a-card-grid>
         </a-card>
       </a-col>
-     <a-col :span="12" :style="{ marginTop: '30px' }">
+      <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug C pin assignment" :bordered="false">
           <a-card-grid
             v-for="(a, Pindex) in PLUGC"
@@ -192,7 +192,7 @@
             <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
               <a-avatar
                 style="
-                   background-color: rgb(253, 228, 132);
+                  background-color: rgb(253, 228, 132);
                   color: rgb(0, 0, 0);
                   margin-left: 10px;
                   font-size: 13px;
@@ -256,7 +256,7 @@
           </a-card-grid>
         </a-card>
       </a-col>
-   <a-col :span="12" :style="{ marginTop: '30px' }">
+      <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug D pin assignment" :bordered="false">
           <a-card-grid
             v-for="(a, Pindex) in PLUGD"
@@ -277,7 +277,7 @@
             <a-popover :title="getMappedTitle(a.split(':')[1])" trigger="hover">
               <a-avatar
                 style="
-     background-color: rgb(184, 230, 254);
+                  background-color: rgb(184, 230, 254);
                   color: rgb(0, 0, 0);
                   margin-left: 10px;
                   font-size: 13px;
@@ -341,7 +341,7 @@
           </a-card-grid>
         </a-card>
       </a-col>
-         <a-col :span="12" :style="{ marginTop: '30px' }">
+      <a-col :span="12" :style="{ marginTop: '30px' }">
         <a-card title="Engine Plug E pin assignment" :bordered="false">
           <a-card-grid
             v-for="(a, Pindex) in PLUGE"
@@ -469,6 +469,7 @@ const getMappedTitle = (pin) => {
     case 'PGND':
       return '这是PGND'
     case 'FREQ-PS':
+    case 'SPEED-PS':
       return '12V+'
     case 'FREQ1-IN':
     case 'FREQ2-IN':
