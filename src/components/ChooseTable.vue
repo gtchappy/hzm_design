@@ -8,8 +8,6 @@
         :value="key + ':' + value"
       >
         {{ key !== '999' ? getKeyIndex(key) + ':' + value : value }}
-        {{ key }}
-
         </a-select-option
       >
     </a-select>

@@ -13,9 +13,9 @@
       <a-col :span="8" v-for="(item, index) in ItemValues" :key="item">
         <a-card hoverable :title="index + 1 + ':' + item.split('_')[1]" style="overflow: hidden">
           <p>{{ '定义：' + counterStore.deviceDefine[item.split('_')[1]] }}</p>
-          <p>{{ '配置：' + counterStore.device[item.split('_')[0]] }}</p>
+          <p>{{ '配置：' + counterStore.devicePinDefine[item.split('_')[1]] }}</p>
 
-          <DeviceDefineButton />
+          <DeviceDefineButton  :device="item.split('_')[1]" />
           <!-- <a-button type="primary" @click="showDrawer">Open</a-button> -->
           <a-button type="primary" class="mr-1" @click="addPin(item)">增加</a-button>
           <a-button danger href="#" @click="removePin(index)">删除</a-button>
@@ -119,6 +119,11 @@ const removePin = (index) => {
   const uniqueArray = [...new Set(processedArray)]
   selectDeviceValue.value = uniqueArray
   handleChange(selectDeviceValue.value)
+  // 如果selectDeviceValue.value为空，则刷新浏览器界面
+  if (selectDeviceValue.value.length === 0) {
+    //刷新浏览器界面
+    window.location.reload()
+  }
 }
 
 const filterArray = (arr) => {
@@ -143,4 +148,14 @@ const options = [
 ]
 const selectDeviceValue = ref([])
 </script>
-<style></style>
+<style scoped>
+/* 使用深度选择器穿透scoped隔离 */
+:deep(.ant-select-tag-close) {
+  display: none !important;
+}
+
+/* 为确保兼容性，也可以同时保留旧的类名 */
+:deep(.ant-select-selection-item-remove) {
+  display: none !important;
+}
+</style>

@@ -25,6 +25,7 @@ export const useCounterStore = defineStore('counter', () => {
     霍尔转速传感器: ['12V+', 'GND', 'Signal'],
     磁电式传感器: ['Signal', 'GND'],
   }
+  const devicePinDefineFunc=['12V+', 'GND', 'Signal']
   //配置各个功能可选择的针脚
   const pin = {
     All: [
@@ -1232,6 +1233,7 @@ export const useCounterStore = defineStore('counter', () => {
     selectedPinFunc,
     deviceFinalConfig,
     selectedId,
-    selectedIdDefine
+    selectedIdDefine,
+    devicePinDefineFunc
   }
 })

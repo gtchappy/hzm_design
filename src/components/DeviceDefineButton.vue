@@ -11,15 +11,34 @@
     @close="onClose"
   >
     <a-space class="site-input-group-wrapper" direction="vertical" size="middle">
-      {{ '当前定义：' + value5 }}
       <a-input-group compact>
-        <a-select v-model:value="value5">
-          <a-select-option value="Option1"></a-select-option>
-          <a-select-option value="Option2"></a-select-option>
-        </a-select>
-        <a-input v-model:value="value6" style="width: 50%" />
+        当前定义：
+        <a-input
+          style="width: calc(100% - 70px)"
+          :placeholder="counterStore.deviceDefine[props.device]"
+          v-model:value="customerPinDefine"
+        />
+        <a-button
+          type="primary"
+          @click="handleSubmit"
+          style="width: 70px; margin-left: 0px; text-align: center"
+          >Submit</a-button
+        >
       </a-input-group>
-      <!-- 修改按钮布局，将两个按钮水平排列 -->
+      <div>{{ counterStore.devicePinDefine[props.device] }}</div>
+      <a-select
+        v-model:value="customerPinFunc"
+        mode="tags"
+        placeholder="Please select"
+        style="width: 200px"
+      >
+        <a-select-option
+          v-for="item in counterStore.devicePinDefineFunc"
+          :key="item"
+          :value="item"
+          >{{ item }}</a-select-option
+        >
+      </a-select>
       <a-space direction="horizontal" size="middle">
         <a-button type="primary" @click="handleAdd">添加</a-button>
         <a-button @click="handleReset">重置</a-button>
@@ -29,24 +48,37 @@
 </template>
 <script setup>
 import { ref } from 'vue'
+import { useCounterStore } from '@/stores/counter'
+const counterStore = useCounterStore()
+const props = defineProps({
+  device: {
+    type: String,
+    default: '',
+  },
+})
 
-const value5 = ref('选择定义')
-const value6 = ref('')
+const customerPinFunc = ref()
+const customerPinDefine = ref(counterStore.deviceDefine[props.device])
 const open = ref(false)
 const showDrawer = () => {
   open.value = true
+  console.log(props.device)
 }
 const onClose = () => {
   open.value = false
 }
 // 添加重置方法
 const handleReset = () => {
-  value6.value = ''
-  // 可以根据需要添加更多重置逻辑
+  counterStore.devicePinDefine[props.device] = []
+  console.log(counterStore.pinChooseDefine)
 }
 // 添加处理方法
 const handleAdd = () => {
-  // 现有的添加逻辑
+  console.log(customerPinFunc.value)
+  counterStore.devicePinDefine[props.device] = customerPinFunc.value
+}
+const handleSubmit = () => {
+  counterStore.deviceDefine[props.device] = customerPinDefine.value
 }
 </script>
 
