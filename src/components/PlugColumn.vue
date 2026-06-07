@@ -47,13 +47,13 @@
               {{ p.signal }}
             </div>
             <template v-else>
+              <!-- 物料号（定义已移到悬浮提示，这里不再显示） -->
+              <div v-if="deviceInfoOf(p.id)?.materialNo" class="pin-line pin-sub">
+                {{ deviceInfoOf(p.id).materialNo }}
+              </div>
               <!-- 选择的引脚 -->
               <div v-if="counterStore.assignments[p.id]?.choose" class="pin-line pin-sub">
                 {{ counterStore.assignments[p.id].choose }}
-              </div>
-              <!-- 定义 -->
-              <div v-if="counterStore.assignments[p.id]?.define" class="pin-line pin-sub">
-                {{ counterStore.assignments[p.id].define }}
               </div>
               <!-- 备注 -->
               <div v-if="counterStore.assignments[p.id]?.remark" class="pin-line pin-sub">

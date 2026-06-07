@@ -37,7 +37,6 @@
       row-key="name"
       size="small"
       :pagination="false"
-      :scroll="{ x: 'max-content' }"
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'connectors'">
@@ -114,12 +113,12 @@ const counterStore = useCounterStore()
 const open = ref(false)
 
 const columns = [
-  { title: '名称', dataIndex: 'name', key: 'name', width: 140 },
-  { title: '物料号', dataIndex: 'materialNo', key: 'materialNo', width: 130 },
-  { title: '插头料号', key: 'connectors', width: 240 },
+  { title: '名称', dataIndex: 'name', key: 'name', width: 120 },
+  { title: '物料号', dataIndex: 'materialNo', key: 'materialNo', width: 110 },
+  { title: '插头料号', key: 'connectors', width: 180 },
   { title: '针脚 → 功能', key: 'terminals' },
-  { title: '资料', key: 'doc', width: 90 },
-  { title: '操作', key: 'action', width: 120, fixed: 'right' },
+  { title: '资料', key: 'doc', width: 80 },
+  { title: '操作', key: 'action', width: 100 },
 ]
 
 const formatTerminals = (terminals) =>
