@@ -116,7 +116,8 @@ const inputDeviceValue = ref('')
 
 const handleMenuClick = (func, p) => {
   const slot = counterStore.ensureAssignment(p.id)
-  slot.choose = counterStore.currentDevice + func
+  // 用带实例序号的名称，区分同名设备的不同实例
+  slot.choose = (counterStore.currentDeviceLabel || counterStore.currentDevice) + func
   slot.define = counterStore.deviceDefine[counterStore.currentDevice]
   counterStore.confirmedTags.push(p.label)
   // 记录该设备 id 占用了哪些针脚，便于整体删除

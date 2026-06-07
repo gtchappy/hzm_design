@@ -116,7 +116,8 @@ export const useCounterStore = defineStore('counter', () => {
   const selectedTags = ref([])
   const confirmedTags = ref([])
   const canChoose = ref([])
-  const currentDevice = ref('')
+  const currentDevice = ref('') // 设备名，用于查接线说明/功能（同名实例相同）
+  const currentDeviceLabel = ref('') // 带实例序号的显示名，用于区分同名设备
   const selectedPinFunc = ref('')
   const selectedId = ref('')
   const selectedIdDefine = ref({})
@@ -157,6 +158,7 @@ export const useCounterStore = defineStore('counter', () => {
     confirmedTags,
     canChoose,
     currentDevice,
+    currentDeviceLabel,
     selectedPinFunc,
     selectedId,
     selectedIdDefine,

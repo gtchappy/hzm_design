@@ -53,10 +53,14 @@ const handleChange = (value) => {
       return;
     }
     // 提取设备id
-    counterStore.selectedId = getPrefix(value);
+    const id = getPrefix(value);
+    counterStore.selectedId = id;
     const parts = value.split(':');
     const deviceValue = parts.length > 1 ? parts[1] : parts[0];
     selectedDevice.value = deviceValue;
+    // 带实例序号的显示名，用于区分同名设备（与下拉框显示的序号一致）
+    counterStore.currentDeviceLabel =
+      id === '999' ? deviceValue : getKeyIndex(id) + ':' + deviceValue;
 
     // console.log('Selected device:', deviceValue);
 
