@@ -24,9 +24,9 @@
     <ShowDrawer />
 
     <a-float-button
-      v-if="deviceConfig.definitions[selectedDevice]"
+      v-if="counterStore.deviceDefine[selectedDevice]"
       shape="square"
-      :description="selectedDevice + '  定义为  ' + deviceConfig.definitions[selectedDevice]"
+      :description="selectedDevice + '  定义为  ' + counterStore.deviceDefine[selectedDevice]"
       :style="{
         bottom: '10px',
         left: '50%',
@@ -44,12 +44,6 @@ import ShowDrawer from './ShowDrawer.vue'
 const emit = defineEmits(['emitSelectedDevice'])
 const selectedDevice = ref('')
 const counterStore = useCounterStore()
-const deviceConfig = {
-  devices: counterStore.device,
-  definitions: counterStore.deviceDefine,
-  pinDefinitions: counterStore.devicePinDefine,
-  pins: counterStore.pin,
-}
 
 const handleChange = (value) => {
   try {
@@ -59,24 +53,25 @@ const handleChange = (value) => {
       return;
     }
     // 提取设备id
-    counterStore.selectedId = getPrefix(value);
+    const id = getPrefix(value);
+    counterStore.selectedId = id;
     const parts = value.split(':');
     const deviceValue = parts.length > 1 ? parts[1] : parts[0];
     selectedDevice.value = deviceValue;
+    // 带实例序号的显示名，用于区分同名设备（与下拉框显示的序号一致）
+    counterStore.currentDeviceLabel =
+      id === '999' ? deviceValue : getKeyIndex(id) + ':' + deviceValue;
 
     // console.log('Selected device:', deviceValue);
 
     counterStore.canChoose = [];
 
-    // 安全地访问deviceConfig.pinDefinitions
-    const pinDefinitions = deviceConfig.pinDefinitions[deviceValue];
+    // 按设备需要的功能类型，汇总出可分配的针脚
+    const pinDefinitions = counterStore.devicePinDefine[deviceValue];
     if (pinDefinitions && Array.isArray(pinDefinitions)) {
       pinDefinitions.forEach((pinType) => {
-        // 安全地访问deviceConfig.pins
-        if (deviceConfig.pins && deviceConfig.pins[pinType] && Array.isArray(deviceConfig.pins[pinType])) {
-          counterStore.canChoose.push(...deviceConfig.pins[pinType]);
-        } else {
-          // console.warn(`Pin type ${pinType} not found or is not an array`);
+        if (Array.isArray(counterStore.pin[pinType])) {
+          counterStore.canChoose.push(...counterStore.pin[pinType]);
         }
       });
     } else {

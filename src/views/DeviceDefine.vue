@@ -1,24 +1,40 @@
 <template>
   <div style="background-color: #ececec; padding: 20px; height: 150vh">
+    <div style="margin-bottom: 20px">
+      <DeviceLibrary />
+    </div>
     <a-select
       v-model:value="selectDeviceValue"
-      mode="tags"
+      mode="multiple"
       style="width: 100%; margin-bottom: 20px"
-      placeholder="Tags Mode"
+      placeholder="请选择设备"
       :options="options"
       :autofocus="true"
       @change="handleChange"
     ></a-select>
     <a-row :gutter="[16, 16]">
-      <a-col :span="8" v-for="(item, index) in ItemValues" :key="item">
-        <a-card hoverable :title="index + 1 + ':' + item.split('_')[1]" style="overflow: hidden">
-          <p>{{ '定义：' + counterStore.deviceDefine[item.split('_')[1]] }}</p>
-          <p>{{ '配置：' + counterStore.devicePinDefine[item.split('_')[1]] }}</p>
+      <a-col :xs="24" :sm="12" :md="8" v-for="(item, index) in ItemValues" :key="item">
+        <a-card hoverable size="small" class="device-card">
+          <template #title>
+            <div class="device-title">
+              <span class="device-index">{{ index + 1 }}</span>
+              <span class="device-name">{{ nameOf(item) }}</span>
+            </div>
+          </template>
 
-          <DeviceDefineButton  :device="item.split('_')[1]" />
-          <!-- <a-button type="primary" @click="showDrawer">Open</a-button> -->
-          <a-button type="primary" class="mr-1" @click="addPin(item)">增加</a-button>
-          <a-button danger @click="removePin(index)">删除</a-button>
+          <div v-if="terminalsOf(item).length" class="terminal-list">
+            <div v-for="(t, i) in terminalsOf(item)" :key="i" class="terminal-row">
+              <a-tag color="blue" :bordered="false">{{ t.name || '—' }}</a-tag>
+              <span class="terminal-arrow">→</span>
+              <span class="terminal-func">{{ t.func || '未设置' }}</span>
+            </div>
+          </div>
+          <div v-else class="terminal-empty">该设备未配置针脚</div>
+
+          <template #actions>
+            <span @click="addPin(item)">增加</span>
+            <span class="card-delete" @click="removePin(index)">删除</span>
+          </template>
         </a-card>
       </a-col>
     </a-row>
@@ -29,13 +45,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useCounterStore } from '@/stores/counter'
 import { customAlphabet } from 'nanoid'
-import DeviceDefineButton from '@/components/DeviceDefineButton.vue'
+import DeviceLibrary from '@/components/DeviceLibrary.vue'
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 const customNanoid = customAlphabet(alphabet, 3)
 const counterStore = useCounterStore()
+
+// 卡片里 item 形如 'abc_设备名'，下划线后是设备名
+const nameOf = (item) => item.split('_')[1]
+// 设备名 → 设备对象，用来取该设备的针脚配置
+const deviceMap = computed(() => Object.fromEntries(counterStore.devices.map((d) => [d.name, d])))
+const terminalsOf = (item) => deviceMap.value[nameOf(item)]?.terminals ?? []
 let preValue = []
 // let remark = []
 const handleChange = (value) => {
@@ -66,32 +88,16 @@ const addPin = (item) => {
     })
   }
 }
-//用来检查counterStore.confirmedTags中是否有counterStore.selectedId
-const getMatchingIds = (arr, content) =>
-  arr.reduce((ids, str, i) => (str.includes(content) ? [...ids, i] : ids), [])
-
 const removePin = (index) => {
   const needRemoveId = ItemValues.value[index].split('_')[0]
-  //删除counterStore.selectedIdDefine中counterStore.selectedId对应的元素
-
-  // 添加检查，确保counterStore.selectedIdDefine[needRemoveId]存在
-  const targetObject = counterStore.selectedIdDefine[needRemoveId] || {}
-  for (const [key, value] of Object.entries(targetObject)) {
-    console.log('key', key)
-    console.log('value', value)
-    if (value) {
-      counterStore.pinChoose[value] = ''
-
-      counterStore.pinChooseDefine[value] = ''
-
-      counterStore.remark[value] = ''
-      //将counterStore.confirmedTags中counterStore.selectedId对应的元素删除
-      let matchingIds = getMatchingIds(counterStore.confirmedTags, value)
-      if (matchingIds.length > 0) {
-        console.log('matchingIds', matchingIds)
-        counterStore.confirmedTags.splice(matchingIds[0], 1)
-      }
-    }
+  // 清空该设备占用的每个针脚：删除分配 + 从已确认列表移除对应针脚
+  const usedPinIds = counterStore.selectedIdDefine[needRemoveId] || []
+  for (const pinId of usedPinIds) {
+    if (!pinId) continue
+    counterStore.clearAssignment(pinId)
+    counterStore.confirmedTags = counterStore.confirmedTags.filter(
+      (label) => label.split(':')[0] !== pinId,
+    )
   }
 
   counterStore.selectedIdDefine[needRemoveId] = []
@@ -137,10 +143,8 @@ const filterArray = (arr) => {
 }
 
 const ItemValues = ref([])
-const options = [
-  { value: '霍尔转速传感器', label: '霍尔转速传感器' },
-  { value: '磁电式传感器', label: '磁电式传感器' },
-]
+// 可选设备 = 设备库（由 DeviceLibrary 维护，不再硬编码）
+const options = computed(() => counterStore.devices.map((d) => ({ value: d.name, label: d.name })))
 const selectDeviceValue = ref([])
 </script>
 <style scoped>
@@ -152,5 +156,51 @@ const selectDeviceValue = ref([])
 /* 为确保兼容性，也可以同时保留旧的类名 */
 :deep(.ant-select-selection-item-remove) {
   display: none !important;
+}
+
+/* ---- 设备卡片 ---- */
+.device-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.device-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  background: #1677ff;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.device-name {
+  font-weight: 600;
+}
+.terminal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.terminal-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.terminal-arrow {
+  color: #bbb;
+}
+.terminal-func {
+  color: #333;
+}
+.terminal-empty {
+  color: #999;
+  padding: 8px 0;
+}
+.card-delete {
+  color: #ff4d4f;
 }
 </style>
