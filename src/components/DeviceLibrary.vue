@@ -1,6 +1,6 @@
 <template>
   <a-button @click="open = true">管理设备库</a-button>
-  <a-drawer v-model:open="open" title="设备库管理" placement="right" :width="640">
+  <a-drawer v-model:open="open" title="设备库管理" placement="right" :width="900">
     <a-space style="margin-bottom: 16px" wrap>
       <a-button type="primary" @click="openForm()">新增设备</a-button>
       <a-button @click="exportJson">导出</a-button>
@@ -37,9 +37,18 @@
       row-key="name"
       size="small"
       :pagination="false"
+      :scroll="{ x: 'max-content' }"
     >
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'terminals'">
+        <template v-if="column.key === 'connectors'">
+          <div v-if="record.connectors?.length">
+            <div v-for="(c, i) in record.connectors" :key="i">
+              {{ c.partNo }}<span v-if="c.desc" style="color: #888">（{{ c.desc }}）</span>
+            </div>
+          </div>
+          <span v-else style="color: #bbb">—</span>
+        </template>
+        <template v-else-if="column.key === 'terminals'">
           {{ formatTerminals(record.terminals) }}
         </template>
         <template v-else-if="column.key === 'doc'">
@@ -77,6 +86,12 @@
             placeholder="如：磁电转速传感器"
           />
         </a-form-item>
+        <a-form-item label="物料号">
+          <a-input v-model:value="form.materialNo" placeholder="设备物料号" />
+        </a-form-item>
+        <a-form-item label="插头料号">
+          <ConnectorEditor v-model="form.connectors" />
+        </a-form-item>
         <a-form-item label="针脚与功能关联">
           <TerminalEditor v-model="form.terminals" />
         </a-form-item>
@@ -93,15 +108,18 @@ import { reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useCounterStore } from '@/stores/counter'
 import TerminalEditor from './TerminalEditor.vue'
+import ConnectorEditor from './ConnectorEditor.vue'
 
 const counterStore = useCounterStore()
 const open = ref(false)
 
 const columns = [
-  { title: '名称', dataIndex: 'name', key: 'name' },
+  { title: '名称', dataIndex: 'name', key: 'name', width: 140 },
+  { title: '物料号', dataIndex: 'materialNo', key: 'materialNo', width: 130 },
+  { title: '插头料号', key: 'connectors', width: 240 },
   { title: '针脚 → 功能', key: 'terminals' },
   { title: '资料', key: 'doc', width: 90 },
-  { title: '操作', key: 'action', width: 130 },
+  { title: '操作', key: 'action', width: 120, fixed: 'right' },
 ]
 
 const formatTerminals = (terminals) =>
@@ -118,12 +136,14 @@ const openDoc = (record) => {
 const formOpen = ref(false)
 const editing = ref(false)
 const nameError = ref('')
-const form = reactive({ name: '', terminals: [], doc: '' })
+const form = reactive({ name: '', materialNo: '', connectors: [], terminals: [], doc: '' })
 
 const openForm = (record) => {
   nameError.value = ''
   editing.value = !!record
   form.name = record?.name ?? ''
+  form.materialNo = record?.materialNo ?? ''
+  form.connectors = (record?.connectors ?? []).map((c) => ({ ...c }))
   form.terminals = (record?.terminals ?? []).map((t) => ({ ...t }))
   form.doc = record?.doc ?? ''
   formOpen.value = true
@@ -136,11 +156,13 @@ const submitForm = () => {
     return
   }
   const terminals = form.terminals.map((t) => ({ ...t }))
+  const connectors = form.connectors.map((c) => ({ ...c }))
+  const materialNo = form.materialNo.trim()
   const doc = form.doc.trim()
   if (editing.value) {
-    counterStore.updateDevice(name, { terminals, doc })
+    counterStore.updateDevice(name, { materialNo, connectors, terminals, doc })
   } else {
-    const ok = counterStore.addDevice({ name, terminals, doc })
+    const ok = counterStore.addDevice({ name, materialNo, connectors, terminals, doc })
     if (!ok) {
       nameError.value = '设备名称已存在'
       return

@@ -18,15 +18,21 @@
         <a-tooltip placement="top">
           <template #title>
             <div>{{ p.label }}</div>
-            <div v-if="counterStore.assignments[p.id]?.choose">
-              选择：{{ counterStore.assignments[p.id].choose }}
-            </div>
-            <div v-if="counterStore.assignments[p.id]?.define">
-              定义：{{ counterStore.assignments[p.id].define }}
-            </div>
-            <div v-if="counterStore.assignments[p.id]?.remark">
-              备注：{{ counterStore.assignments[p.id].remark }}
-            </div>
+            <template v-if="counterStore.assignments[p.id]?.choose">
+              <div>设备：{{ counterStore.assignments[p.id].choose }}</div>
+              <div v-if="deviceInfoOf(p.id)?.materialNo">
+                物料号：{{ deviceInfoOf(p.id).materialNo }}
+              </div>
+              <div v-if="deviceInfoOf(p.id)?.connector">
+                插头：{{ deviceInfoOf(p.id).connector }}
+              </div>
+              <div v-if="counterStore.assignments[p.id]?.define">
+                定义：{{ counterStore.assignments[p.id].define }}
+              </div>
+              <div v-if="counterStore.assignments[p.id]?.remark">
+                备注：{{ counterStore.assignments[p.id].remark }}
+              </div>
+            </template>
           </template>
           <div class="pin-content">
             <!-- 未分配时显示信号名；一旦填入内容则让位给所填内容（信号名仍可在悬浮提示中查看） -->
@@ -112,6 +118,21 @@ const hasContent = (p) => {
   return !!(a && (a.choose || a.define || a.remark))
 }
 
+// 反查该针脚所分配设备的物料号、所选插头（用于悬浮提示）
+const deviceInfoOf = (pinId) => {
+  const a = counterStore.assignments[pinId]
+  if (!a?.deviceId) return null
+  const name = counterStore.device[a.deviceId]
+  const dev = counterStore.devices.find((d) => d.name === name)
+  if (!dev) return { materialNo: '', connector: '' }
+  const partNo = counterStore.instanceConnectors[a.deviceId]
+  const conn = dev.connectors?.find((c) => c.partNo === partNo)
+  return {
+    materialNo: dev.materialNo || '',
+    connector: conn ? (conn.desc ? `${conn.partNo}（${conn.desc}）` : conn.partNo) : partNo || '',
+  }
+}
+
 const inputDeviceValue = ref('')
 
 const handleMenuClick = (func, p) => {
@@ -119,6 +140,9 @@ const handleMenuClick = (func, p) => {
   // 用带实例序号的名称，区分同名设备的不同实例
   slot.choose = (counterStore.currentDeviceLabel || counterStore.currentDevice) + func
   slot.define = counterStore.deviceDefine[counterStore.currentDevice]
+  // 记录结构化信息：该针脚分配给了哪个设备实例的哪个功能（供设备卡片回显）
+  slot.deviceId = counterStore.selectedId
+  slot.func = func
   counterStore.confirmedTags.push(p.label)
   // 记录该设备 id 占用了哪些针脚，便于整体删除
   if (!counterStore.selectedIdDefine[counterStore.selectedId]) {

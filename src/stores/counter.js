@@ -89,7 +89,20 @@ function normalizeDevice(d) {
   } else if (Array.isArray(d?.pinTypes)) {
     terminals = d.pinTypes.map((f) => ({ name: '', func: String(f) }))
   }
-  return { name: String(d?.name ?? '').trim(), terminals, doc: String(d?.doc ?? '') }
+  // 插头料号：可多个，每个带说明以区分用途
+  const connectors = Array.isArray(d?.connectors)
+    ? d.connectors.map((c) => ({
+        partNo: String(c?.partNo ?? '').trim(),
+        desc: String(c?.desc ?? ''),
+      }))
+    : []
+  return {
+    name: String(d?.name ?? '').trim(),
+    materialNo: String(d?.materialNo ?? '').trim(),
+    connectors,
+    terminals,
+    doc: String(d?.doc ?? ''),
+  }
 }
 
 // 设备库：优先读 localStorage，没有或损坏则回退到出厂默认
@@ -218,6 +231,8 @@ export const useCounterStore = defineStore('counter', () => {
   const selectedPinFunc = ref('')
   const selectedId = ref('')
   const selectedIdDefine = ref({})
+  // 每个设备实例所选用的插头料号：{ [instanceId]: partNo }
+  const instanceConnectors = ref({})
 
   // 针脚分配：合并了原来的 pinChoose / pinChooseDefine / remark 三张平行表。
   // 结构：{ [pinId]: { choose, define, remark } }，按需写入，不再手写空表。
@@ -273,6 +288,7 @@ export const useCounterStore = defineStore('counter', () => {
     selectedPinFunc,
     selectedId,
     selectedIdDefine,
+    instanceConnectors,
     assignments,
     ensureAssignment,
     clearAssignment,
