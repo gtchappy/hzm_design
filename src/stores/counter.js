@@ -248,6 +248,49 @@ export const useCounterStore = defineStore('counter', () => {
     delete assignments.value[pinId]
   }
 
+  // ---- 整个项目的导入/导出 ----
+  // 打包：维护数据（设备库 / 功能类型 / 功能查询 / 资料文件夹）+ 工作区（已选设备、
+  // MVC 针脚分配、所选插头等），导入后即可完整复现项目。
+  const exportProject = () => ({
+    type: 'hzm-project',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    devices: clone(devices.value),
+    pinTypes: clone(pinTypesData.list.value),
+    pinFunctions: clone(pinFunctionsData.list.value),
+    docFolder: docFolder.value,
+    workspace: {
+      device: clone(device.value),
+      assignments: clone(assignments.value),
+      selectedIdDefine: clone(selectedIdDefine.value),
+      confirmedTags: clone(confirmedTags.value),
+      instanceConnectors: clone(instanceConnectors.value),
+    },
+  })
+
+  const importProject = (data) => {
+    if (!data || typeof data !== 'object') throw new Error('文件格式错误：不是有效的项目数据')
+    // 维护数据（沿用各自的规范化/去重逻辑，并自动持久化到 localStorage）
+    if (Array.isArray(data.devices)) importDevices(data.devices)
+    if (Array.isArray(data.pinTypes)) pinTypesData.importList(data.pinTypes)
+    if (Array.isArray(data.pinFunctions)) pinFunctionsData.importList(data.pinFunctions)
+    if (typeof data.docFolder === 'string') docFolder.value = data.docFolder
+    // 工作区（会话级，整体替换）
+    const ws = data.workspace || {}
+    const isObj = (v) => v && typeof v === 'object'
+    device.value = isObj(ws.device) ? clone(ws.device) : clone(DEVICE_DEFAULT)
+    assignments.value = isObj(ws.assignments) ? clone(ws.assignments) : {}
+    selectedIdDefine.value = isObj(ws.selectedIdDefine) ? clone(ws.selectedIdDefine) : {}
+    confirmedTags.value = Array.isArray(ws.confirmedTags) ? [...ws.confirmedTags] : []
+    instanceConnectors.value = isObj(ws.instanceConnectors) ? clone(ws.instanceConnectors) : {}
+    // 清空临时选择与高亮（导入后没有“当前选中”的设备）
+    canChoose.value = []
+    currentDevice.value = ''
+    currentDeviceLabel.value = ''
+    selectedId.value = ''
+    selectedPinFunc.value = ''
+  }
+
   return {
     // 静态数据
     plugs,
@@ -292,5 +335,8 @@ export const useCounterStore = defineStore('counter', () => {
     assignments,
     ensureAssignment,
     clearAssignment,
+    // 项目级导入导出
+    exportProject,
+    importProject,
   }
 })

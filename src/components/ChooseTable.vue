@@ -21,7 +21,15 @@
         {{ functionKey }}</a-select-option
       >
     </a-select>
-    <ShowDrawer />
+    <span
+      v-if="counterStore.selectedPinFunc && counterStore.selectedPinFunc !== '空'"
+      style="font-size: 14px; color: #333; white-space: nowrap"
+    >
+      共 <b>{{ funcStats.total }}</b> · 已用
+      <b style="color: #1677ff">{{ funcStats.used }}</b> · 剩余
+      <b style="color: #52c41a">{{ funcStats.remaining }}</b>
+    </span>
+    <ProjectIO />
 
     <a-float-button
       v-if="counterStore.deviceDefine[selectedDevice]"
@@ -40,10 +48,17 @@
 <script setup>
 import { ref, defineEmits, computed } from 'vue'
 import { useCounterStore } from '@/stores/counter'
-import ShowDrawer from './ShowDrawer.vue'
+import ProjectIO from './ProjectIO.vue'
 const emit = defineEmits(['emitSelectedDevice'])
 const selectedDevice = ref('')
 const counterStore = useCounterStore()
+
+// 当前功能查询项的针脚统计：总数 / 已用（已被占用）/ 剩余
+const funcStats = computed(() => {
+  const pins = counterStore.pinFunction[counterStore.selectedPinFunc] || []
+  const used = pins.filter((label) => counterStore.confirmedTags.includes(label)).length
+  return { total: pins.length, used, remaining: pins.length - used }
+})
 
 const handleChange = (value) => {
   try {

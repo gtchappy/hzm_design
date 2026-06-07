@@ -1,7 +1,7 @@
 <template>
   <div style="background-color: #ececec; padding: 20px; height: 150vh">
     <div style="margin-bottom: 20px">
-      <a-space>
+      <a-space wrap>
         <DeviceLibrary />
         <PinDataLibrary />
       </a-space>
@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useCounterStore } from '@/stores/counter'
 import { customAlphabet } from 'nanoid'
 import DeviceLibrary from '@/components/DeviceLibrary.vue'
@@ -208,10 +208,31 @@ const filterArray = (arr) => {
   })
 }
 
-const ItemValues = ref([])
+// 由 counterStore.device 推出卡片列表（导入项目 / 首次进入本页时据此还原）
+const buildItemValues = (dev) =>
+  Object.keys(dev)
+    .filter((k) => k !== '999')
+    .map((k) => `${k}_${dev[k]}`)
+
+// 初始化时即从 device 还原，确保「在 MVC 页导入后再进入本页」也能显示
+const ItemValues = ref(buildItemValues(counterStore.device))
 // 可选设备 = 设备库（由 DeviceLibrary 维护，不再硬编码）
 const options = computed(() => counterStore.devices.map((d) => ({ value: d.name, label: d.name })))
-const selectDeviceValue = ref([])
+const selectDeviceValue = ref([...new Set(ItemValues.value.map((it) => it.split('_')[1]))])
+
+// 导入项目后 counterStore.device 会被整体替换，这里据此重建卡片列表 ItemValues
+// （正常增删设备时两者本就一致，比较后不同才重建，避免相互干扰）
+watch(
+  () => counterStore.device,
+  (dev) => {
+    const expected = buildItemValues(dev)
+    if (JSON.stringify([...expected].sort()) !== JSON.stringify([...ItemValues.value].sort())) {
+      ItemValues.value = expected
+      selectDeviceValue.value = [...new Set(expected.map((it) => it.split('_')[1]))]
+    }
+  },
+  { deep: true },
+)
 </script>
 <style scoped>
 /* 使用深度选择器穿透scoped隔离 */
