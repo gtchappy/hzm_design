@@ -22,6 +22,15 @@
       />
     </a-space>
 
+    <a-space style="margin-bottom: 16px">
+      <span>资料文件夹：</span>
+      <a-input
+        v-model:value="counterStore.docFolder"
+        placeholder="如 docs（说明书统一存放的目录）"
+        style="width: 280px"
+      />
+    </a-space>
+
     <a-table
       :data-source="counterStore.devices"
       :columns="columns"
@@ -32,6 +41,12 @@
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'terminals'">
           {{ formatTerminals(record.terminals) }}
+        </template>
+        <template v-else-if="column.key === 'doc'">
+          <a-button v-if="record.doc" type="link" size="small" @click="openDoc(record)">
+            查看资料
+          </a-button>
+          <span v-else style="color: #bbb">—</span>
         </template>
         <template v-else-if="column.key === 'action'">
           <a-button type="link" size="small" @click="openForm(record)">编辑</a-button>
@@ -65,6 +80,9 @@
         <a-form-item label="针脚与功能关联">
           <TerminalEditor v-model="form.terminals" />
         </a-form-item>
+        <a-form-item label="资料文件名">
+          <a-input v-model:value="form.doc" placeholder="如 霍尔转速传感器.pdf" />
+        </a-form-item>
       </a-form>
     </a-modal>
   </a-drawer>
@@ -82,23 +100,32 @@ const open = ref(false)
 const columns = [
   { title: '名称', dataIndex: 'name', key: 'name' },
   { title: '针脚 → 功能', key: 'terminals' },
+  { title: '资料', key: 'doc', width: 90 },
   { title: '操作', key: 'action', width: 130 },
 ]
 
 const formatTerminals = (terminals) =>
   (terminals || []).map((t) => (t.name ? `${t.name}:${t.func}` : t.func)).join(', ')
 
+// 打开该设备的资料：资料文件夹 + 文件名
+const openDoc = (record) => {
+  const folder = (counterStore.docFolder || '').replace(/\/+$/, '')
+  const path = folder ? `${folder}/${record.doc}` : record.doc
+  window.open(encodeURI(path), '_blank')
+}
+
 // ---- 新增 / 编辑表单 ----
 const formOpen = ref(false)
 const editing = ref(false)
 const nameError = ref('')
-const form = reactive({ name: '', terminals: [] })
+const form = reactive({ name: '', terminals: [], doc: '' })
 
 const openForm = (record) => {
   nameError.value = ''
   editing.value = !!record
   form.name = record?.name ?? ''
   form.terminals = (record?.terminals ?? []).map((t) => ({ ...t }))
+  form.doc = record?.doc ?? ''
   formOpen.value = true
 }
 
@@ -109,10 +136,11 @@ const submitForm = () => {
     return
   }
   const terminals = form.terminals.map((t) => ({ ...t }))
+  const doc = form.doc.trim()
   if (editing.value) {
-    counterStore.updateDevice(name, { terminals })
+    counterStore.updateDevice(name, { terminals, doc })
   } else {
-    const ok = counterStore.addDevice({ name, terminals })
+    const ok = counterStore.addDevice({ name, terminals, doc })
     if (!ok) {
       nameError.value = '设备名称已存在'
       return

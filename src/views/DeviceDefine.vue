@@ -1,7 +1,10 @@
 <template>
   <div style="background-color: #ececec; padding: 20px; height: 150vh">
     <div style="margin-bottom: 20px">
-      <DeviceLibrary />
+      <a-space>
+        <DeviceLibrary />
+        <PinDataLibrary />
+      </a-space>
     </div>
     <a-select
       v-model:value="selectDeviceValue"
@@ -49,6 +52,7 @@ import { computed, ref } from 'vue'
 import { useCounterStore } from '@/stores/counter'
 import { customAlphabet } from 'nanoid'
 import DeviceLibrary from '@/components/DeviceLibrary.vue'
+import PinDataLibrary from '@/components/PinDataLibrary.vue'
 const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 const customNanoid = customAlphabet(alphabet, 3)
 const counterStore = useCounterStore()

@@ -1,7 +1,7 @@
 // 设备与功能字典。
 // 这些是「规则数据」，与针脚硬件数据（pins.js）分开维护。
-
-import { labelOf } from './pins'
+// 以下 DEFAULT_* 仅作为首次启动和「恢复默认」的兜底，实际数据由 store 持久化到 localStorage，
+// 并可在界面（设备库管理 / 功能数据维护）中增删改、导入导出。
 
 // 工作区设备下拉的默认项（999 = 显示全部）
 export const DEVICE_DEFAULT = { 999: '显示全部' }
@@ -28,56 +28,56 @@ export const DEFAULT_DEVICES = [
   },
 ]
 
-// 功能/信号类型 → 可分配的针脚。
-// 这里用简短的针脚 id 维护，再派生成完整 label 供 canChoose 匹配。
-const PIN_IDS = {
-  GND: [
-    'A22', 'A54', 'A58', 'B3', 'B7', 'B8', 'B11', 'B15', 'B16', 'B19',
-    'B24', 'B28', 'B32', 'B36', 'B39', 'B43', 'B47', 'B48', 'B51', 'B55',
-    'B56', 'B60', 'B61', 'B62', 'C33', 'C34', 'C35', 'C36', 'C42', 'C43',
-    'C47', 'C51', 'C55', 'C58', 'C61', 'D9', 'D10', 'D11', 'D12', 'D21',
-    'D22', 'D23', 'D24', 'D33', 'D34', 'D35', 'D36', 'D45', 'D46', 'D47',
-    'D48', 'D54', 'D55', 'D58', 'D51', 'E13', 'E16', 'E31', 'E34', 'E37',
-  ],
-  SpeedSignal: ['B2', 'B6', 'B10'],
-  _12V: ['B1', 'B5', 'B9'],
-  AI: ['A1', 'A2'],
-}
+// GND 针脚集合（功能类型与功能查询都会用到）
+// prettier-ignore
+const GND_PINS = [
+  'A22', 'A54', 'A58', 'B3', 'B7', 'B8', 'B11', 'B15', 'B16', 'B19',
+  'B24', 'B28', 'B32', 'B36', 'B39', 'B43', 'B47', 'B48', 'B51', 'B55',
+  'B56', 'B60', 'B61', 'B62', 'C33', 'C34', 'C35', 'C36', 'C42', 'C43',
+  'C47', 'C51', 'C55', 'C58', 'C61', 'D9', 'D10', 'D11', 'D12', 'D21',
+  'D22', 'D23', 'D24', 'D33', 'D34', 'D35', 'D36', 'D45', 'D46', 'D47',
+  'D48', 'D54', 'D55', 'D58', 'D51', 'E13', 'E16', 'E31', 'E34', 'E37',
+]
 
-export const pin = Object.fromEntries(
-  Object.entries(PIN_IDS).map(([type, ids]) => [type, ids.map(labelOf)]),
-)
+// 功能类型 → 可分配针脚（设备「针脚↔功能」关联的可选功能，也决定 MVC 的可分配针脚）
+// 用针脚 id 维护，store 会派生成完整 label 供匹配。
+export const DEFAULT_PIN_TYPES = [
+  { name: 'GND', pins: GND_PINS },
+  { name: 'SpeedSignal', pins: ['B2', 'B6', 'B10'] },
+  { name: '_12V', pins: ['B1', 'B5', 'B9'] },
+  { name: 'AI', pins: ['A1', 'A2'] },
+]
 
-// 功能查询：每个功能高亮哪些针脚
-export const pinFunction = {
-  空: [],
-  'Analogue Input(0-5V)': ['A1:PWMI1-(IN+)', 'A2:PWMI1-(IN-)'],
-  'Analogue Input(4-20mA)': ['A2:PWMO1-(OUT+)'],
-  'Analogue Input(0-36V)': ['A2:PWMO1-(OUT+)'],
-  'Analogue Feedback Input': ['A2:PWMO1-(OUT+)'],
-  'Analogue Output(0-5V)': ['A2:DO2-(OUT+)'],
-  'Analogue Output(4-20mA)': ['A2:DO2-(OUT+)'],
-  'Binary Input': ['A1:DI1-(IN+)', 'A2:DI2-(IN-)'],
-  'Binary Output(Half Bridge)': ['A2:DO2-(OUT+)'],
-  'Binary Output(High Side)': ['A2:DO2-(OUT+)'],
-  'Current Output(Half Bridge)': ['A2:DO2-(OUT+)'],
-  'Current Output(Half Bridge with Shut Down)': ['A2:DO2-(OUT+)'],
-  'Elysion Feedback Input': [],
-  'Frequency Input': [],
-  'Full Bridge': ['A2:DO2-(OUT+)'],
-  'Frequency Output(Speed Input 1)': ['A2:DO2-(OUT+)'],
-  'Frequency Output(Speed Input 2)': ['A2:DO2-(OUT+)'],
-  'Frequency Output(Index Input)': ['A2:DO2-(OUT+)'],
-  'Frequency Output(Frequency Input 1)': ['A2:DO2-(OUT+)'],
-  'Frequency Output(Frequency Input 2)': ['A2:DO2-(OUT+)'],
-  'PWM Input': [],
-  'PWM Output': ['A2:DO2-(OUT+)'],
-  'Temperature Input(PT100)': [],
-  'Temperature Input(PT200)': [],
-  'Temperature Input(PT1000)': [],
-  'Temperature Input(Ni1000)': [],
-  'Temperature Input(NTC)': [],
-  'Temperature Input(Type J)': [],
-  'Temperature Input(Type K)': [],
-  GND: [...pin.GND],
-}
+// 功能查询 → 高亮针脚
+export const DEFAULT_PIN_FUNCTIONS = [
+  { name: '空', pins: [] },
+  { name: 'Analogue Input(0-5V)', pins: ['A1', 'A2'] },
+  { name: 'Analogue Input(4-20mA)', pins: ['A2'] },
+  { name: 'Analogue Input(0-36V)', pins: ['A2'] },
+  { name: 'Analogue Feedback Input', pins: ['A2'] },
+  { name: 'Analogue Output(0-5V)', pins: ['A2'] },
+  { name: 'Analogue Output(4-20mA)', pins: ['A2'] },
+  { name: 'Binary Input', pins: ['A1', 'A2'] },
+  { name: 'Binary Output(Half Bridge)', pins: ['A2'] },
+  { name: 'Binary Output(High Side)', pins: ['A2'] },
+  { name: 'Current Output(Half Bridge)', pins: ['A2'] },
+  { name: 'Current Output(Half Bridge with Shut Down)', pins: ['A2'] },
+  { name: 'Elysion Feedback Input', pins: [] },
+  { name: 'Frequency Input', pins: [] },
+  { name: 'Full Bridge', pins: ['A2'] },
+  { name: 'Frequency Output(Speed Input 1)', pins: ['A2'] },
+  { name: 'Frequency Output(Speed Input 2)', pins: ['A2'] },
+  { name: 'Frequency Output(Index Input)', pins: ['A2'] },
+  { name: 'Frequency Output(Frequency Input 1)', pins: ['A2'] },
+  { name: 'Frequency Output(Frequency Input 2)', pins: ['A2'] },
+  { name: 'PWM Input', pins: [] },
+  { name: 'PWM Output', pins: ['A2'] },
+  { name: 'Temperature Input(PT100)', pins: [] },
+  { name: 'Temperature Input(PT200)', pins: [] },
+  { name: 'Temperature Input(PT1000)', pins: [] },
+  { name: 'Temperature Input(Ni1000)', pins: [] },
+  { name: 'Temperature Input(NTC)', pins: [] },
+  { name: 'Temperature Input(Type J)', pins: [] },
+  { name: 'Temperature Input(Type K)', pins: [] },
+  { name: 'GND', pins: GND_PINS },
+]
