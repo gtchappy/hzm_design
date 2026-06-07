@@ -29,7 +29,9 @@
             </div>
           </template>
           <div class="pin-content">
+            <!-- 未分配时显示信号名；一旦填入内容则让位给所填内容（信号名仍可在悬浮提示中查看） -->
             <div
+              v-if="!hasContent(p)"
               class="pin-line"
               :class="{
                 'func-card':
@@ -38,12 +40,20 @@
             >
               {{ p.signal }}
             </div>
-            <!-- 选择的引脚 -->
-            <div class="pin-line pin-sub">{{ counterStore.assignments[p.id]?.choose }}</div>
-            <!-- 定义 -->
-            <div class="pin-line pin-sub">{{ counterStore.assignments[p.id]?.define }}</div>
-            <!-- 备注 -->
-            <div class="pin-line pin-sub">{{ counterStore.assignments[p.id]?.remark }}</div>
+            <template v-else>
+              <!-- 选择的引脚 -->
+              <div v-if="counterStore.assignments[p.id]?.choose" class="pin-line pin-sub">
+                {{ counterStore.assignments[p.id].choose }}
+              </div>
+              <!-- 定义 -->
+              <div v-if="counterStore.assignments[p.id]?.define" class="pin-line pin-sub">
+                {{ counterStore.assignments[p.id].define }}
+              </div>
+              <!-- 备注 -->
+              <div v-if="counterStore.assignments[p.id]?.remark" class="pin-line pin-sub">
+                {{ counterStore.assignments[p.id].remark }}
+              </div>
+            </template>
           </div>
         </a-tooltip>
 
@@ -95,6 +105,12 @@ const avatarColor = computed(() => AVATAR_COLORS[props.plug] ?? 'rgb(255, 182, 1
 
 // E 插头每行 3 个；其余插头最后两排（57 号及以后）每行 3 个，前面每行 4 个
 const gridWidth = (p) => (props.plug === 'E' || p.no > 56 ? '33.3333%' : '25%')
+
+// 该针脚是否已填入分配内容（有则隐藏信号名、让位给内容）
+const hasContent = (p) => {
+  const a = counterStore.assignments[p.id]
+  return !!(a && (a.choose || a.define || a.remark))
+}
 
 const inputDeviceValue = ref('')
 
@@ -167,10 +183,11 @@ const handleDeviceConfirmClick = (value, p) => {
 .pin-content {
   width: 100%;
   height: 100%;
-  padding: 18px 4px 4px;
+  padding: 16px 4px 4px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 2px;
   text-align: center;
 }
 .pin-line {
