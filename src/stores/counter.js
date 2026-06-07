@@ -13,6 +13,21 @@ const DEVICES_STORAGE_KEY = 'hzm.devices'
 const DOC_FOLDER_STORAGE_KEY = 'hzm.docFolder'
 const PIN_TYPES_STORAGE_KEY = 'hzm.pinTypes'
 const PIN_FUNCTIONS_STORAGE_KEY = 'hzm.pinFunctions'
+const WORKSPACE_STORAGE_KEY = 'hzm.workspace'
+
+// 工作区（已选设备、针脚分配、所选插头等）持久化读取，刷新不丢
+function loadWorkspace() {
+  try {
+    const raw = localStorage.getItem(WORKSPACE_STORAGE_KEY)
+    if (raw) {
+      const p = JSON.parse(raw)
+      if (p && typeof p === 'object') return p
+    }
+  } catch (e) {
+    console.warn('读取工作区失败：', e)
+  }
+  return {}
+}
 
 // 规范化「名称 → 针脚id列表」条目
 const normEntry = (e) => ({
@@ -222,21 +237,47 @@ export const useCounterStore = defineStore('counter', () => {
   )
 
   // ---- 用户操作状态 ----
-  const device = ref(clone(DEVICE_DEFAULT)) // 工作区下拉（instanceId → 设备名）
+  // 工作区数据（device / assignments / selectedIdDefine / confirmedTags / instanceConnectors）
+  // 从 localStorage 还原，并自动持久化，刷新不丢。
+  const ws0 = loadWorkspace()
+  const isObj = (v) => v && typeof v === 'object'
+  const device = ref(isObj(ws0.device) ? ws0.device : clone(DEVICE_DEFAULT)) // 工作区下拉（instanceId → 设备名）
   const selectedTags = ref([])
-  const confirmedTags = ref([])
-  const canChoose = ref([])
+  const confirmedTags = ref(Array.isArray(ws0.confirmedTags) ? ws0.confirmedTags : [])
+  const canChoose = ref([]) // 派生的高亮，不持久化
   const currentDevice = ref('') // 设备名，用于查接线说明/功能（同名实例相同）
   const currentDeviceLabel = ref('') // 带实例序号的显示名，用于区分同名设备
   const selectedPinFunc = ref('')
   const selectedId = ref('')
-  const selectedIdDefine = ref({})
+  const selectedIdDefine = ref(isObj(ws0.selectedIdDefine) ? ws0.selectedIdDefine : {})
   // 每个设备实例所选用的插头料号：{ [instanceId]: partNo }
-  const instanceConnectors = ref({})
+  const instanceConnectors = ref(isObj(ws0.instanceConnectors) ? ws0.instanceConnectors : {})
 
   // 针脚分配：合并了原来的 pinChoose / pinChooseDefine / remark 三张平行表。
-  // 结构：{ [pinId]: { choose, define, remark } }，按需写入，不再手写空表。
-  const assignments = ref({})
+  // 结构：{ [pinId]: { choose, define, remark, deviceId, func } }，按需写入。
+  const assignments = ref(isObj(ws0.assignments) ? ws0.assignments : {})
+
+  // 工作区任何变化自动落 localStorage
+  watch(
+    [device, assignments, selectedIdDefine, confirmedTags, instanceConnectors],
+    () => {
+      try {
+        localStorage.setItem(
+          WORKSPACE_STORAGE_KEY,
+          JSON.stringify({
+            device: device.value,
+            assignments: assignments.value,
+            selectedIdDefine: selectedIdDefine.value,
+            confirmedTags: confirmedTags.value,
+            instanceConnectors: instanceConnectors.value,
+          }),
+        )
+      } catch (e) {
+        console.warn('保存工作区失败：', e)
+      }
+    },
+    { deep: true },
+  )
 
   const ensureAssignment = (pinId) => {
     if (!assignments.value[pinId]) {
@@ -275,9 +316,8 @@ export const useCounterStore = defineStore('counter', () => {
     if (Array.isArray(data.pinTypes)) pinTypesData.importList(data.pinTypes)
     if (Array.isArray(data.pinFunctions)) pinFunctionsData.importList(data.pinFunctions)
     if (typeof data.docFolder === 'string') docFolder.value = data.docFolder
-    // 工作区（会话级，整体替换）
+    // 工作区（整体替换，随后由 watch 自动持久化）
     const ws = data.workspace || {}
-    const isObj = (v) => v && typeof v === 'object'
     device.value = isObj(ws.device) ? clone(ws.device) : clone(DEVICE_DEFAULT)
     assignments.value = isObj(ws.assignments) ? clone(ws.assignments) : {}
     selectedIdDefine.value = isObj(ws.selectedIdDefine) ? clone(ws.selectedIdDefine) : {}

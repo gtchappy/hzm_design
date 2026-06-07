@@ -187,11 +187,6 @@ const removePin = (index) => {
   const uniqueArray = [...new Set(processedArray)]
   selectDeviceValue.value = uniqueArray
   handleChange(selectDeviceValue.value)
-  // 如果selectDeviceValue.value为空，则刷新浏览器界面
-  if (selectDeviceValue.value.length === 0) {
-    //刷新浏览器界面
-    window.location.reload()
-  }
 }
 
 const filterArray = (arr) => {
@@ -219,6 +214,8 @@ const ItemValues = ref(buildItemValues(counterStore.device))
 // 可选设备 = 设备库（由 DeviceLibrary 维护，不再硬编码）
 const options = computed(() => counterStore.devices.map((d) => ({ value: d.name, label: d.name })))
 const selectDeviceValue = ref([...new Set(ItemValues.value.map((it) => it.split('_')[1]))])
+// 还原工作区后，让 handleChange 的差异基线与当前选中一致，避免首次操作重复添加
+preValue = [...selectDeviceValue.value]
 
 // 导入项目后 counterStore.device 会被整体替换，这里据此重建卡片列表 ItemValues
 // （正常增删设备时两者本就一致，比较后不同才重建，避免相互干扰）
