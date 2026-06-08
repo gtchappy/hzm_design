@@ -18,24 +18,16 @@
         <a-tooltip placement="top">
           <template #title>
             <div>{{ p.label }}</div>
-            <template v-if="counterStore.assignments[p.id]?.choose">
-              <div>设备：{{ counterStore.assignments[p.id].choose }}</div>
-              <div v-if="deviceInfoOf(p.id)?.materialNo">
-                物料号：{{ deviceInfoOf(p.id).materialNo }}
-              </div>
-              <div v-if="deviceInfoOf(p.id)?.connector">
-                插头：{{ deviceInfoOf(p.id).connector }}
-              </div>
-              <div v-if="counterStore.assignments[p.id]?.define">
-                定义：{{ counterStore.assignments[p.id].define }}
-              </div>
-              <div v-if="counterStore.assignments[p.id]?.remark">
-                备注：{{ counterStore.assignments[p.id].remark }}
-              </div>
-            </template>
+            <div v-for="(e, i) in entriesOf(p)" :key="i" style="margin-top: 4px">
+              <div>{{ entriesOf(p).length > 1 ? i + 1 + '. ' : '' }}设备：{{ e.choose }}</div>
+              <div v-if="entryInfo(e).materialNo">物料号：{{ entryInfo(e).materialNo }}</div>
+              <div v-if="entryInfo(e).connector">插头：{{ entryInfo(e).connector }}</div>
+              <div v-if="entryInfo(e).define">定义：{{ entryInfo(e).define }}</div>
+              <div v-if="e.remark">备注：{{ e.remark }}</div>
+            </div>
           </template>
           <div class="pin-content">
-            <!-- 未分配时显示信号名；一旦填入内容则让位给所填内容（信号名仍可在悬浮提示中查看） -->
+            <!-- 未分配：显示信号名（信号名仍可在悬浮提示查看） -->
             <div
               v-if="!hasContent(p)"
               class="pin-line"
@@ -46,45 +38,50 @@
             >
               {{ p.signal }}
             </div>
+            <!-- 单条：物料号 / 选择 / 备注 -->
+            <template v-else-if="entriesOf(p).length === 1">
+              <div v-if="entryInfo(entriesOf(p)[0]).materialNo" class="pin-line pin-sub">
+                {{ entryInfo(entriesOf(p)[0]).materialNo }}
+              </div>
+              <div class="pin-line pin-sub">{{ entriesOf(p)[0].choose }}</div>
+              <div v-if="entriesOf(p)[0].remark" class="pin-line pin-sub">
+                {{ entriesOf(p)[0].remark }}
+              </div>
+            </template>
+            <!-- 多条：条数 + 首条 -->
             <template v-else>
-              <!-- 物料号（定义已移到悬浮提示，这里不再显示） -->
-              <div v-if="deviceInfoOf(p.id)?.materialNo" class="pin-line pin-sub">
-                {{ deviceInfoOf(p.id).materialNo }}
+              <div class="pin-line pin-sub" style="font-weight: 600">
+                共 {{ entriesOf(p).length }} 个传感器
               </div>
-              <!-- 选择的引脚 -->
-              <div v-if="counterStore.assignments[p.id]?.choose" class="pin-line pin-sub">
-                {{ counterStore.assignments[p.id].choose }}
-              </div>
-              <!-- 备注 -->
-              <div v-if="counterStore.assignments[p.id]?.remark" class="pin-line pin-sub">
-                {{ counterStore.assignments[p.id].remark }}
-              </div>
+              <div class="pin-line pin-sub">{{ entriesOf(p)[0].choose }}</div>
             </template>
           </div>
         </a-tooltip>
 
         <template #overlay>
-          <a-menu>
-            <a-menu-item
-              :key="func"
-              v-for="func in counterStore.devicePinDefine[counterStore.currentDevice]"
-              @click="handleMenuClick(func, p)"
-              >{{ func }}</a-menu-item
-            >
-            <a-input-group compact>
-              <a-input
-                style="width: 150px"
-                v-model:value="inputDeviceValue"
-                @keyup.enter="handleDeviceConfirmClick(inputDeviceValue, p)"
-              />
+          <div class="assign-panel" @click.stop>
+            <template v-if="entriesOf(p).length">
+              <div class="panel-title">已分配（{{ entriesOf(p).length }}）</div>
+              <div v-for="(e, i) in entriesOf(p)" :key="i" class="assign-row">
+                <span class="assign-choose" :title="e.choose">{{ e.choose }}</span>
+                <a-input v-model:value="e.remark" size="small" placeholder="备注" style="width: 96px" />
+                <a-button type="text" danger size="small" @click="removeEntry(p, i)">删除</a-button>
+              </div>
+              <a-divider style="margin: 8px 0" />
+            </template>
+            <div class="panel-title">添加到此针脚</div>
+            <div v-if="currentDeviceFuncs.length" class="add-funcs">
               <a-button
-                type="primary"
-                style="text-align: center"
-                @click="handleDeviceConfirmClick(inputDeviceValue, p)"
-                >OK</a-button
+                v-for="func in currentDeviceFuncs"
+                :key="func"
+                size="small"
+                @click="addEntry(func, p)"
               >
-            </a-input-group>
-          </a-menu>
+                {{ func }}
+              </a-button>
+            </div>
+            <div v-else class="panel-hint">请先在上方下拉选择一个设备</div>
+          </div>
         </template>
       </a-dropdown>
     </a-card-grid>
@@ -92,7 +89,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useCounterStore } from '@/stores/counter'
 
 const props = defineProps({
@@ -112,54 +109,44 @@ const avatarColor = computed(() => AVATAR_COLORS[props.plug] ?? 'rgb(255, 182, 1
 // E 插头每行 3 个；其余插头最后两排（57 号及以后）每行 3 个，前面每行 4 个
 const gridWidth = (p) => (props.plug === 'E' || p.no > 56 ? '33.3333%' : '25%')
 
-// 该针脚是否已填入分配内容（有则隐藏信号名、让位给内容）
-const hasContent = (p) => {
-  const a = counterStore.assignments[p.id]
-  return !!(a && (a.choose || a.define || a.remark))
-}
+// 该针脚的分配条目（一个针脚可有多条）
+const entriesOf = (p) => counterStore.assignments[p.id] || []
+const hasContent = (p) => entriesOf(p).length > 0
 
-// 反查该针脚所分配设备的物料号、所选插头（用于悬浮提示）
-const deviceInfoOf = (pinId) => {
-  const a = counterStore.assignments[pinId]
-  if (!a?.deviceId) return null
-  const name = counterStore.device[a.deviceId]
+// 由一条分配反查其设备的物料号 / 所选插头 / 接线说明（用于悬浮提示）
+const entryInfo = (e) => {
+  const name = counterStore.device[e.deviceId]
   const dev = counterStore.devices.find((d) => d.name === name)
-  if (!dev) return { materialNo: '', connector: '' }
-  const partNo = counterStore.instanceConnectors[a.deviceId]
+  if (!dev) return { materialNo: '', connector: '', define: '' }
+  const partNo = counterStore.instanceConnectors[e.deviceId]
   const conn = dev.connectors?.find((c) => c.partNo === partNo)
   return {
     materialNo: dev.materialNo || '',
     connector: conn ? (conn.desc ? `${conn.partNo}（${conn.desc}）` : conn.partNo) : partNo || '',
+    define: counterStore.deviceDefine[name] || '',
   }
 }
 
-const inputDeviceValue = ref('')
+// 当前所选设备可用的功能（添加菜单）
+const currentDeviceFuncs = computed(
+  () => counterStore.devicePinDefine[counterStore.currentDevice] || [],
+)
 
-const handleMenuClick = (func, p) => {
-  const slot = counterStore.ensureAssignment(p.id)
-  // 用带实例序号的名称，区分同名设备的不同实例
-  slot.choose = (counterStore.currentDeviceLabel || counterStore.currentDevice) + func
-  slot.define = counterStore.deviceDefine[counterStore.currentDevice]
-  // 记录结构化信息：该针脚分配给了哪个设备实例的哪个功能（供设备卡片回显）
-  slot.deviceId = counterStore.selectedId
-  slot.func = func
-  counterStore.confirmedTags.push(p.label)
-  // 记录该设备 id 占用了哪些针脚，便于整体删除
-  if (!counterStore.selectedIdDefine[counterStore.selectedId]) {
-    counterStore.selectedIdDefine[counterStore.selectedId] = []
+// 添加一条分配（脚上已有分配时二次确认）
+const addEntry = (func, p) => {
+  const list = counterStore.assignments[p.id]
+  if (list && list.length > 0) {
+    if (!confirm(`该针脚已分配 ${list.length} 个传感器针脚，确定再添加一个？`)) return
   }
-  counterStore.selectedIdDefine[counterStore.selectedId].push(p.id)
+  counterStore.addAssignment(p.id, {
+    deviceId: counterStore.selectedId,
+    func,
+    choose: (counterStore.currentDeviceLabel || counterStore.currentDevice) + func,
+    remark: '',
+  })
 }
-
-const handleDeviceConfirmClick = (value, p) => {
-  if (value) {
-    counterStore.ensureAssignment(p.id).remark = value
-  } else if (confirm('Are you sure?')) {
-    counterStore.confirmedTags = counterStore.confirmedTags.filter((label) => label !== p.label)
-    counterStore.clearAssignment(p.id)
-  }
-  inputDeviceValue.value = ''
-}
+// 删除某一条分配
+const removeEntry = (p, index) => counterStore.removeAssignment(p.id, index)
 </script>
 
 <style scoped>
@@ -225,5 +212,43 @@ const handleDeviceConfirmClick = (value, p) => {
 .pin-sub {
   font-size: 11px;
   line-height: 1.3;
+}
+
+/* 针脚管理面板（点击弹出） */
+.assign-panel {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  padding: 8px 10px;
+  min-width: 230px;
+  max-width: 340px;
+}
+.panel-title {
+  font-size: 12px;
+  color: #888;
+  margin: 2px 0 6px;
+}
+.assign-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.assign-choose {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+.add-funcs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.panel-hint {
+  font-size: 12px;
+  color: #bbb;
 }
 </style>

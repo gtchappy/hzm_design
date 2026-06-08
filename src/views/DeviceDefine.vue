@@ -103,7 +103,7 @@ const assignedPinsFor = (inst, func) => {
   const a = counterStore.assignments
   const pins = []
   for (const pinId in a) {
-    if (a[pinId]?.deviceId === inst.id && a[pinId]?.func === func) pins.push(pinId)
+    if ((a[pinId] || []).some((e) => e.deviceId === inst.id && e.func === func)) pins.push(pinId)
   }
   return pins
 }

@@ -26,6 +26,31 @@ function loadWorkspace() {
   return {}
 }
 
+// 针脚分配归一为 { [pinId]: [ { deviceId, func, choose, remark } ] }。
+// 兼容旧格式：每个针脚是单个对象 → 包成数组。
+function normalizeAssignments(obj) {
+  const out = {}
+  if (!obj || typeof obj !== 'object') return out
+  for (const pinId of Object.keys(obj)) {
+    const v = obj[pinId]
+    let list = []
+    if (Array.isArray(v)) list = v
+    else if (v && typeof v === 'object' && (v.choose || v.func || v.remark || v.deviceId)) {
+      list = [v] // 旧格式：单条
+    }
+    list = list
+      .filter((e) => e && typeof e === 'object')
+      .map((e) => ({
+        deviceId: String(e.deviceId ?? ''),
+        func: String(e.func ?? ''),
+        choose: String(e.choose ?? ''),
+        remark: String(e.remark ?? ''),
+      }))
+    if (list.length) out[pinId] = list
+  }
+  return out
+}
+
 // 工作区里的“已选设备实例”归一为 [{ id, name }]。
 // 兼容旧格式：旧版用 device 对象（{ id: name }）保存。
 function instancesFromWorkspace(ws) {
@@ -248,8 +273,7 @@ export const useCounterStore = defineStore('counter', () => {
   )
 
   // ---- 用户操作状态 ----
-  // 工作区数据（instances / assignments / selectedIdDefine / confirmedTags / instanceConnectors）
-  // 从 localStorage 还原，并自动持久化，刷新不丢。
+  // 工作区数据（instances / assignments / instanceConnectors）从 localStorage 还原并自动持久化。
   const ws0 = loadWorkspace()
   const isObj = (v) => v && typeof v === 'object'
   // 已选设备实例（工作区单一数据源）：[{ id, name }]
@@ -261,23 +285,28 @@ export const useCounterStore = defineStore('counter', () => {
     return m
   })
   const selectedTags = ref([])
-  const confirmedTags = ref(Array.isArray(ws0.confirmedTags) ? ws0.confirmedTags : [])
   const canChoose = ref([]) // 派生的高亮，不持久化
   const currentDevice = ref('') // 设备名，用于查接线说明/功能（同名实例相同）
   const currentDeviceLabel = ref('') // 带实例序号的显示名，用于区分同名设备
   const selectedPinFunc = ref('')
   const selectedId = ref('')
-  const selectedIdDefine = ref(isObj(ws0.selectedIdDefine) ? ws0.selectedIdDefine : {})
   // 每个设备实例所选用的插头料号：{ [instanceId]: partNo }
   const instanceConnectors = ref(isObj(ws0.instanceConnectors) ? ws0.instanceConnectors : {})
 
-  // 针脚分配：合并了原来的 pinChoose / pinChooseDefine / remark 三张平行表。
-  // 结构：{ [pinId]: { choose, define, remark, deviceId, func } }，按需写入。
-  const assignments = ref(isObj(ws0.assignments) ? ws0.assignments : {})
+  // 针脚分配：每个 MVC 针脚对应一组（可多个）传感器针脚连接。
+  // 结构：{ [pinId]: [ { deviceId, func, choose, remark } ] }
+  const assignments = ref(normalizeAssignments(ws0.assignments))
+
+  // 已占用针脚（蓝色）：由 assignments 派生，恒与分配一致
+  const confirmedTags = computed(() =>
+    Object.keys(assignments.value)
+      .filter((pinId) => assignments.value[pinId]?.length)
+      .map(labelOf),
+  )
 
   // 工作区任何变化自动落 localStorage
   watch(
-    [instances, assignments, selectedIdDefine, confirmedTags, instanceConnectors],
+    [instances, assignments, instanceConnectors],
     () => {
       try {
         localStorage.setItem(
@@ -285,8 +314,6 @@ export const useCounterStore = defineStore('counter', () => {
           JSON.stringify({
             instances: instances.value,
             assignments: assignments.value,
-            selectedIdDefine: selectedIdDefine.value,
-            confirmedTags: confirmedTags.value,
             instanceConnectors: instanceConnectors.value,
           }),
         )
@@ -297,14 +324,21 @@ export const useCounterStore = defineStore('counter', () => {
     { deep: true },
   )
 
-  const ensureAssignment = (pinId) => {
-    if (!assignments.value[pinId]) {
-      assignments.value[pinId] = { choose: '', define: '', remark: '' }
-    }
-    return assignments.value[pinId]
+  // ---- 针脚分配的增删（一个针脚可有多条） ----
+  const addAssignment = (pinId, entry) => {
+    if (!assignments.value[pinId]) assignments.value[pinId] = []
+    assignments.value[pinId].push({
+      deviceId: String(entry?.deviceId ?? ''),
+      func: String(entry?.func ?? ''),
+      choose: String(entry?.choose ?? ''),
+      remark: String(entry?.remark ?? ''),
+    })
   }
-  const clearAssignment = (pinId) => {
-    delete assignments.value[pinId]
+  const removeAssignment = (pinId, index) => {
+    const list = assignments.value[pinId]
+    if (!list) return
+    list.splice(index, 1)
+    if (list.length === 0) delete assignments.value[pinId]
   }
 
   // ---- 工作区设备实例的增删 ----
@@ -313,15 +347,14 @@ export const useCounterStore = defineStore('counter', () => {
     instances.value.push({ id, name: String(name) })
     return id
   }
-  // 删除某实例：连同它占用的针脚分配、所选插头一起清理
+  // 删除某实例：从各针脚分配里移除属于它的条目，并清掉其所选插头
   const removeInstance = (id) => {
-    const usedPinIds = selectedIdDefine.value[id] || []
-    for (const pinId of usedPinIds) {
-      if (!pinId) continue
-      clearAssignment(pinId)
-      confirmedTags.value = confirmedTags.value.filter((label) => label.split(':')[0] !== pinId)
+    for (const pinId of Object.keys(assignments.value)) {
+      const list = assignments.value[pinId]
+      const kept = list.filter((e) => e.deviceId !== id)
+      if (kept.length === 0) delete assignments.value[pinId]
+      else if (kept.length !== list.length) assignments.value[pinId] = kept
     }
-    delete selectedIdDefine.value[id]
     delete instanceConnectors.value[id]
     instances.value = instances.value.filter((i) => i.id !== id)
   }
@@ -340,8 +373,6 @@ export const useCounterStore = defineStore('counter', () => {
     workspace: {
       instances: clone(instances.value),
       assignments: clone(assignments.value),
-      selectedIdDefine: clone(selectedIdDefine.value),
-      confirmedTags: clone(confirmedTags.value),
       instanceConnectors: clone(instanceConnectors.value),
     },
   })
@@ -356,9 +387,7 @@ export const useCounterStore = defineStore('counter', () => {
     // 工作区（整体替换，随后由 watch 自动持久化）
     const ws = data.workspace || {}
     instances.value = instancesFromWorkspace(ws)
-    assignments.value = isObj(ws.assignments) ? clone(ws.assignments) : {}
-    selectedIdDefine.value = isObj(ws.selectedIdDefine) ? clone(ws.selectedIdDefine) : {}
-    confirmedTags.value = Array.isArray(ws.confirmedTags) ? [...ws.confirmedTags] : []
+    assignments.value = normalizeAssignments(ws.assignments)
     instanceConnectors.value = isObj(ws.instanceConnectors) ? clone(ws.instanceConnectors) : {}
     // 清空临时选择与高亮（导入后没有“当前选中”的设备）
     canChoose.value = []
@@ -410,11 +439,10 @@ export const useCounterStore = defineStore('counter', () => {
     currentDeviceLabel,
     selectedPinFunc,
     selectedId,
-    selectedIdDefine,
     instanceConnectors,
     assignments,
-    ensureAssignment,
-    clearAssignment,
+    addAssignment,
+    removeAssignment,
     // 项目级导入导出
     exportProject,
     importProject,
