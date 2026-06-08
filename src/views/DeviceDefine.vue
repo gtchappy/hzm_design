@@ -16,52 +16,52 @@
       @change="handleChange"
     ></a-select>
     <a-row :gutter="[16, 16]">
-      <a-col :xs="24" :sm="12" :md="8" v-for="(item, index) in ItemValues" :key="item">
+      <a-col :xs="24" :sm="12" :md="8" v-for="(inst, index) in counterStore.instances" :key="inst.id">
         <a-card hoverable size="small" class="device-card">
           <template #title>
             <div class="device-title">
               <span class="device-index">{{ index + 1 }}</span>
-              <span class="device-name">{{ nameOf(item) }}</span>
+              <span class="device-name">{{ inst.name }}</span>
               <a-tag
-                v-if="summaryOf(item).total"
-                :color="summaryOf(item).done ? 'green' : 'orange'"
+                v-if="summaryOf(inst).total"
+                :color="summaryOf(inst).done ? 'green' : 'orange'"
                 :bordered="false"
                 style="margin-left: auto"
               >
-                已分配 {{ summaryOf(item).assigned }}/{{ summaryOf(item).total }}
+                已分配 {{ summaryOf(inst).assigned }}/{{ summaryOf(inst).total }}
               </a-tag>
             </div>
           </template>
 
           <div class="device-material">
-            物料号：<span :class="{ 'material-empty': !materialNoOf(item) }">{{
-              materialNoOf(item) || '未填写'
+            物料号：<span :class="{ 'material-empty': !materialNoOf(inst) }">{{
+              materialNoOf(inst) || '未填写'
             }}</span>
           </div>
 
           <div class="device-connector">
             <span class="conn-label">插头：</span>
             <a-select
-              v-if="connectorOptions(item).length"
-              v-model:value="counterStore.instanceConnectors[idOf(item)]"
+              v-if="connectorOptions(inst).length"
+              v-model:value="counterStore.instanceConnectors[inst.id]"
               size="small"
               style="min-width: 170px"
               placeholder="选择插头"
-              :options="connectorOptions(item)"
+              :options="connectorOptions(inst)"
               allow-clear
             />
             <span v-else class="conn-empty">该设备未维护插头料号</span>
           </div>
 
-          <div v-if="terminalsOf(item).length" class="terminal-list">
-            <div v-for="(t, i) in terminalsOf(item)" :key="i" class="terminal-row">
+          <div v-if="terminalsOf(inst).length" class="terminal-list">
+            <div v-for="(t, i) in terminalsOf(inst)" :key="i" class="terminal-row">
               <a-tag color="blue" :bordered="false">{{ t.name || '—' }}</a-tag>
               <span class="terminal-arrow">→</span>
               <span class="terminal-func">{{ t.func || '未设置' }}</span>
               <span class="terminal-arrow">→</span>
-              <template v-if="assignedPinsFor(item, t.func).length">
+              <template v-if="assignedPinsFor(inst, t.func).length">
                 <a-tag color="green" :bordered="false">{{
-                  assignedPinsFor(item, t.func).join('、')
+                  assignedPinsFor(inst, t.func).join('、')
                 }}</a-tag>
               </template>
               <span v-else class="assign-empty">未分配</span>
@@ -70,166 +70,78 @@
           <div v-else class="terminal-empty">该设备未配置针脚</div>
 
           <template #actions>
-            <span @click="addPin(item)">增加</span>
-            <span class="card-delete" @click="removePin(index)">删除</span>
+            <span @click="addPin(inst)">增加</span>
+            <span class="card-delete" @click="removePin(inst)">删除</span>
           </template>
         </a-card>
       </a-col>
     </a-row>
   </div>
-  <!-- {{ counterStore.device }}
-  {{ ItemValues }}
-  {{ selectDeviceValue }} -->
 </template>
 
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useCounterStore } from '@/stores/counter'
-import { customAlphabet } from 'nanoid'
 import DeviceLibrary from '@/components/DeviceLibrary.vue'
 import PinDataLibrary from '@/components/PinDataLibrary.vue'
-const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
-const customNanoid = customAlphabet(alphabet, 3)
+
 const counterStore = useCounterStore()
 
-// 卡片里 item 形如 'abc_设备名'，下划线后是设备名
-const nameOf = (item) => item.split('_')[1]
-// 设备名 → 设备对象，用来取该设备的针脚配置
+// 设备名 → 设备库对象，用来取该设备的针脚/物料号/插头配置
 const deviceMap = computed(() => Object.fromEntries(counterStore.devices.map((d) => [d.name, d])))
-const terminalsOf = (item) => deviceMap.value[nameOf(item)]?.terminals ?? []
-const materialNoOf = (item) => deviceMap.value[nameOf(item)]?.materialNo ?? ''
-const connectorsOf = (item) => deviceMap.value[nameOf(item)]?.connectors ?? []
-const connectorOptions = (item) =>
-  connectorsOf(item).map((c) => ({
+const terminalsOf = (inst) => deviceMap.value[inst.name]?.terminals ?? []
+const materialNoOf = (inst) => deviceMap.value[inst.name]?.materialNo ?? ''
+const connectorsOf = (inst) => deviceMap.value[inst.name]?.connectors ?? []
+const connectorOptions = (inst) =>
+  connectorsOf(inst).map((c) => ({
     value: c.partNo,
     label: c.desc ? `${c.partNo}（${c.desc}）` : c.partNo,
   }))
 
-// item 形如 'id_设备名'，前缀即设备实例 id（与 MVC 分配时记录的 deviceId 一致）
-const idOf = (item) => item.split('_')[0]
 // 查该设备实例某个功能被分配到的 MVC 针脚（可能多个）
-const assignedPinsFor = (item, func) => {
-  const id = idOf(item)
+const assignedPinsFor = (inst, func) => {
   const a = counterStore.assignments
   const pins = []
   for (const pinId in a) {
-    if (a[pinId]?.deviceId === id && a[pinId]?.func === func) pins.push(pinId)
+    if (a[pinId]?.deviceId === inst.id && a[pinId]?.func === func) pins.push(pinId)
   }
   return pins
 }
 // 分配进度：有多少个针脚（功能）已分配到 MVC
-const summaryOf = (item) => {
-  const terms = terminalsOf(item)
-  const assigned = terms.filter((t) => assignedPinsFor(item, t.func).length > 0).length
+const summaryOf = (inst) => {
+  const terms = terminalsOf(inst)
+  const assigned = terms.filter((t) => assignedPinsFor(inst, t.func).length > 0).length
   return { assigned, total: terms.length, done: terms.length > 0 && assigned === terms.length }
 }
-let preValue = []
-// let remark = []
-const handleChange = (value) => {
-  let newValue = value.filter((item) => !preValue.includes(item))
-  preValue = value
-  let id = customNanoid()
-  ItemValues.value.push(id + '_' + newValue)
-  // 过滤数组，移除包含下划线的元素
-  ItemValues.value = filterArray(ItemValues.value)
-  //如果value中没有的元素ItemValue中对出来了，则删除ItemValue中多出来的元素
-  ItemValues.value = ItemValues.value.filter((item) => value.includes(item.split('_')[1]))
-  //将ItemValues.value中的每个元素都添加到counterStore.device中
-  counterStore.device = { 999: '显示全部' }
-  for (let i = 0; i < ItemValues.value.length; i++) {
-    let id = ItemValues.value[i].split('_')[0]
-    Object.assign(counterStore.device, {
-      [id]: ItemValues.value[i].split('_')[1],
-    })
-  }
-}
 
-const addPin = (item) => {
-  let id = customNanoid()
-  ItemValues.value.push(id + '_' + item.split('_')[1])
-  for (let i = 0; i < ItemValues.value.length; i++) {
-    Object.assign(counterStore.device, {
-      [id]: ItemValues.value[i].split('_')[1],
-    })
-  }
-}
-const removePin = (index) => {
-  const needRemoveId = ItemValues.value[index].split('_')[0]
-  // 清空该设备占用的每个针脚：删除分配 + 从已确认列表移除对应针脚
-  const usedPinIds = counterStore.selectedIdDefine[needRemoveId] || []
-  for (const pinId of usedPinIds) {
-    if (!pinId) continue
-    counterStore.clearAssignment(pinId)
-    counterStore.confirmedTags = counterStore.confirmedTags.filter(
-      (label) => label.split(':')[0] !== pinId,
-    )
-  }
-
-  counterStore.selectedIdDefine[needRemoveId] = []
-  delete counterStore.instanceConnectors[needRemoveId]
-  ItemValues.value.splice(index, 1)
-  counterStore.device = { 999: '显示全部' }
-  for (let i = 0; i < ItemValues.value.length; i++) {
-    let id = ItemValues.value[i].split('_')[0]
-    Object.assign(counterStore.device, {
-      [id]: ItemValues.value[i].split('_')[1],
-    })
-  }
-  if (ItemValues.value.length === 0) {
-    selectDeviceValue.value = []
-    counterStore.device = { 999: '显示全部' }
-  }
-  const processedArray = ItemValues.value.map((item) => {
-    // 使用split('_')分割字符串，取分割后的第二部分
-    return item.split('_')[1]
-  })
-  // console.log(processedArray)
-  const uniqueArray = [...new Set(processedArray)]
-  selectDeviceValue.value = uniqueArray
-  handleChange(selectDeviceValue.value)
-}
-
-const filterArray = (arr) => {
-  // 使用filter方法过滤数组
-  return arr.filter((item) => {
-    // 检查元素是否包含下划线
-    const underscoreIndex = item.indexOf('_')
-    // 如果包含下划线且下划线是最后一个字符，则过滤掉
-    if (underscoreIndex !== -1 && underscoreIndex === item.length - 1) {
-      return false
-    }
-    // 其他情况保留
-    return true
-  })
-}
-
-// 由 counterStore.device 推出卡片列表（导入项目 / 首次进入本页时据此还原）
-const buildItemValues = (dev) =>
-  Object.keys(dev)
-    .filter((k) => k !== '999')
-    .map((k) => `${k}_${dev[k]}`)
-
-// 初始化时即从 device 还原，确保「在 MVC 页导入后再进入本页」也能显示
-const ItemValues = ref(buildItemValues(counterStore.device))
-// 可选设备 = 设备库（由 DeviceLibrary 维护，不再硬编码）
+// 可选设备 = 设备库（由 DeviceLibrary 维护）
 const options = computed(() => counterStore.devices.map((d) => ({ value: d.name, label: d.name })))
-const selectDeviceValue = ref([...new Set(ItemValues.value.map((it) => it.split('_')[1]))])
-// 还原工作区后，让 handleChange 的差异基线与当前选中一致，避免首次操作重复添加
-preValue = [...selectDeviceValue.value]
 
-// 导入项目后 counterStore.device 会被整体替换，这里据此重建卡片列表 ItemValues
-// （正常增删设备时两者本就一致，比较后不同才重建，避免相互干扰）
+// 多选框选中的设备名（去重）。始终与工作区实例保持同步
+const uniqueNames = () => [...new Set(counterStore.instances.map((i) => i.name))]
+const selectDeviceValue = ref(uniqueNames())
 watch(
-  () => counterStore.device,
-  (dev) => {
-    const expected = buildItemValues(dev)
-    if (JSON.stringify([...expected].sort()) !== JSON.stringify([...ItemValues.value].sort())) {
-      ItemValues.value = expected
-      selectDeviceValue.value = [...new Set(expected.map((it) => it.split('_')[1]))]
-    }
+  () => counterStore.instances,
+  () => {
+    selectDeviceValue.value = uniqueNames()
   },
   { deep: true },
 )
+
+// 多选框变化：新选中的名字各加一个实例；取消选中的名字删除其全部实例
+const handleChange = (names) => {
+  const have = new Set(counterStore.instances.map((i) => i.name))
+  for (const name of names) {
+    if (!have.has(name)) counterStore.addInstance(name)
+  }
+  for (const inst of counterStore.instances.filter((i) => !names.includes(i.name))) {
+    counterStore.removeInstance(inst.id)
+  }
+}
+// 「增加」：再加一个同型号实例
+const addPin = (inst) => counterStore.addInstance(inst.name)
+// 「删除」：删除该实例（连同其针脚分配、所选插头）
+const removePin = (inst) => counterStore.removeInstance(inst.id)
 </script>
 <style scoped>
 /* 使用深度选择器穿透scoped隔离 */

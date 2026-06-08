@@ -1,14 +1,11 @@
 import { ref, computed, watch } from 'vue'
 import { defineStore } from 'pinia'
+import { customAlphabet } from 'nanoid'
 import { PINS, PINS_BY_PLUG, PLUGS, labelOf } from '@/data/pins'
-import {
-  DEVICE_DEFAULT,
-  DEFAULT_DEVICES,
-  DEFAULT_PIN_TYPES,
-  DEFAULT_PIN_FUNCTIONS,
-} from '@/data/devices'
+import { DEFAULT_DEVICES, DEFAULT_PIN_TYPES, DEFAULT_PIN_FUNCTIONS } from '@/data/devices'
 
 const clone = (o) => JSON.parse(JSON.stringify(o))
+const nano = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 3)
 const DEVICES_STORAGE_KEY = 'hzm.devices'
 const DOC_FOLDER_STORAGE_KEY = 'hzm.docFolder'
 const PIN_TYPES_STORAGE_KEY = 'hzm.pinTypes'
@@ -27,6 +24,20 @@ function loadWorkspace() {
     console.warn('读取工作区失败：', e)
   }
   return {}
+}
+
+// 工作区里的“已选设备实例”归一为 [{ id, name }]。
+// 兼容旧格式：旧版用 device 对象（{ id: name }）保存。
+function instancesFromWorkspace(ws) {
+  if (Array.isArray(ws?.instances)) {
+    return ws.instances.filter((i) => i && i.id).map((i) => ({ id: String(i.id), name: String(i.name ?? '') }))
+  }
+  if (ws?.device && typeof ws.device === 'object') {
+    return Object.entries(ws.device)
+      .filter(([k]) => k !== '999')
+      .map(([id, name]) => ({ id, name: String(name) }))
+  }
+  return []
 }
 
 // 规范化「名称 → 针脚id列表」条目
@@ -237,11 +248,18 @@ export const useCounterStore = defineStore('counter', () => {
   )
 
   // ---- 用户操作状态 ----
-  // 工作区数据（device / assignments / selectedIdDefine / confirmedTags / instanceConnectors）
+  // 工作区数据（instances / assignments / selectedIdDefine / confirmedTags / instanceConnectors）
   // 从 localStorage 还原，并自动持久化，刷新不丢。
   const ws0 = loadWorkspace()
   const isObj = (v) => v && typeof v === 'object'
-  const device = ref(isObj(ws0.device) ? ws0.device : clone(DEVICE_DEFAULT)) // 工作区下拉（instanceId → 设备名）
+  // 已选设备实例（工作区单一数据源）：[{ id, name }]
+  const instances = ref(instancesFromWorkspace(ws0))
+  // 兼容旧用法：派生出 { 999:'显示全部', [id]: name } 供下拉/按 id 查名
+  const device = computed(() => {
+    const m = { 999: '显示全部' }
+    for (const i of instances.value) m[i.id] = i.name
+    return m
+  })
   const selectedTags = ref([])
   const confirmedTags = ref(Array.isArray(ws0.confirmedTags) ? ws0.confirmedTags : [])
   const canChoose = ref([]) // 派生的高亮，不持久化
@@ -259,13 +277,13 @@ export const useCounterStore = defineStore('counter', () => {
 
   // 工作区任何变化自动落 localStorage
   watch(
-    [device, assignments, selectedIdDefine, confirmedTags, instanceConnectors],
+    [instances, assignments, selectedIdDefine, confirmedTags, instanceConnectors],
     () => {
       try {
         localStorage.setItem(
           WORKSPACE_STORAGE_KEY,
           JSON.stringify({
-            device: device.value,
+            instances: instances.value,
             assignments: assignments.value,
             selectedIdDefine: selectedIdDefine.value,
             confirmedTags: confirmedTags.value,
@@ -289,6 +307,25 @@ export const useCounterStore = defineStore('counter', () => {
     delete assignments.value[pinId]
   }
 
+  // ---- 工作区设备实例的增删 ----
+  const addInstance = (name) => {
+    const id = nano()
+    instances.value.push({ id, name: String(name) })
+    return id
+  }
+  // 删除某实例：连同它占用的针脚分配、所选插头一起清理
+  const removeInstance = (id) => {
+    const usedPinIds = selectedIdDefine.value[id] || []
+    for (const pinId of usedPinIds) {
+      if (!pinId) continue
+      clearAssignment(pinId)
+      confirmedTags.value = confirmedTags.value.filter((label) => label.split(':')[0] !== pinId)
+    }
+    delete selectedIdDefine.value[id]
+    delete instanceConnectors.value[id]
+    instances.value = instances.value.filter((i) => i.id !== id)
+  }
+
   // ---- 整个项目的导入/导出 ----
   // 打包：维护数据（设备库 / 功能类型 / 功能查询 / 资料文件夹）+ 工作区（已选设备、
   // MVC 针脚分配、所选插头等），导入后即可完整复现项目。
@@ -301,7 +338,7 @@ export const useCounterStore = defineStore('counter', () => {
     pinFunctions: clone(pinFunctionsData.list.value),
     docFolder: docFolder.value,
     workspace: {
-      device: clone(device.value),
+      instances: clone(instances.value),
       assignments: clone(assignments.value),
       selectedIdDefine: clone(selectedIdDefine.value),
       confirmedTags: clone(confirmedTags.value),
@@ -318,7 +355,7 @@ export const useCounterStore = defineStore('counter', () => {
     if (typeof data.docFolder === 'string') docFolder.value = data.docFolder
     // 工作区（整体替换，随后由 watch 自动持久化）
     const ws = data.workspace || {}
-    device.value = isObj(ws.device) ? clone(ws.device) : clone(DEVICE_DEFAULT)
+    instances.value = instancesFromWorkspace(ws)
     assignments.value = isObj(ws.assignments) ? clone(ws.assignments) : {}
     selectedIdDefine.value = isObj(ws.selectedIdDefine) ? clone(ws.selectedIdDefine) : {}
     confirmedTags.value = Array.isArray(ws.confirmedTags) ? [...ws.confirmedTags] : []
@@ -362,6 +399,9 @@ export const useCounterStore = defineStore('counter', () => {
     importDevices,
     resetDevices,
     // 用户状态
+    instances,
+    addInstance,
+    removeInstance,
     device,
     selectedTags,
     confirmedTags,
