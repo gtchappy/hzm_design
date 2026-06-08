@@ -58,14 +58,9 @@
         </template>
         <template v-else-if="column.key === 'action'">
           <a-button type="link" size="small" @click="openForm(record)">编辑</a-button>
-          <a-popconfirm
-            title="确定删除该设备？"
-            ok-text="删除"
-            cancel-text="取消"
-            @confirm="counterStore.removeDevice(record.name)"
-          >
-            <a-button type="link" size="small" danger>删除</a-button>
-          </a-popconfirm>
+          <a-button type="link" size="small" danger @click="removeDeviceWithCheck(record.name)">
+            删除
+          </a-button>
         </template>
       </template>
     </a-table>
@@ -104,7 +99,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 import { useCounterStore } from '@/stores/counter'
 import TerminalEditor from './TerminalEditor.vue'
 import ConnectorEditor from './ConnectorEditor.vue'
@@ -129,6 +124,24 @@ const openDoc = (record) => {
   const folder = (counterStore.docFolder || '').replace(/\/+$/, '')
   const path = folder ? `${folder}/${record.doc}` : record.doc
   window.open(encodeURI(path), '_blank')
+}
+
+// 删除设备：若已加入工作区，提示并级联清理这些实例及其针脚分配
+const removeDeviceWithCheck = (name) => {
+  const used = counterStore.instances.filter((i) => i.name === name)
+  Modal.confirm({
+    title: `删除设备「${name}」`,
+    content: used.length
+      ? `该设备在工作区有 ${used.length} 个实例，删除将一并移除这些实例及其 MVC 针脚分配。确定继续？`
+      : '确定删除该设备？',
+    okText: '删除',
+    okType: 'danger',
+    cancelText: '取消',
+    onOk() {
+      used.forEach((i) => counterStore.removeInstance(i.id))
+      counterStore.removeDevice(name)
+    },
+  })
 }
 
 // ---- 新增 / 编辑表单 ----
