@@ -9,7 +9,7 @@
         title="确定恢复为出厂默认设备？当前改动将全部丢失"
         ok-text="恢复"
         cancel-text="取消"
-        @confirm="counterStore.resetDevices()"
+        @confirm="projectStore.resetDevices()"
       >
         <a-button danger>恢复默认</a-button>
       </a-popconfirm>
@@ -25,14 +25,14 @@
     <a-space style="margin-bottom: 16px">
       <span>资料文件夹：</span>
       <a-input
-        v-model:value="counterStore.docFolder"
+        v-model:value="projectStore.docFolder"
         placeholder="如 docs（说明书统一存放的目录）"
         style="width: 280px"
       />
     </a-space>
 
     <a-table
-      :data-source="counterStore.devices"
+      :data-source="projectStore.devices"
       :columns="columns"
       row-key="name"
       size="small"
@@ -100,11 +100,11 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { message, Modal } from 'ant-design-vue'
-import { useCounterStore } from '@/stores/counter'
+import { useProjectStore } from '@/stores/project'
 import TerminalEditor from './TerminalEditor.vue'
 import ConnectorEditor from './ConnectorEditor.vue'
 
-const counterStore = useCounterStore()
+const projectStore = useProjectStore()
 const open = ref(false)
 
 const columns = [
@@ -121,14 +121,14 @@ const formatTerminals = (terminals) =>
 
 // 打开该设备的资料：资料文件夹 + 文件名
 const openDoc = (record) => {
-  const folder = (counterStore.docFolder || '').replace(/\/+$/, '')
+  const folder = (projectStore.docFolder || '').replace(/\/+$/, '')
   const path = folder ? `${folder}/${record.doc}` : record.doc
   window.open(encodeURI(path), '_blank')
 }
 
 // 删除设备：若已加入工作区，提示并级联清理这些实例及其针脚分配
 const removeDeviceWithCheck = (name) => {
-  const used = counterStore.instances.filter((i) => i.name === name)
+  const used = projectStore.instances.filter((i) => i.name === name)
   Modal.confirm({
     title: `删除设备「${name}」`,
     content: used.length
@@ -138,8 +138,8 @@ const removeDeviceWithCheck = (name) => {
     okType: 'danger',
     cancelText: '取消',
     onOk() {
-      used.forEach((i) => counterStore.removeInstance(i.id))
-      counterStore.removeDevice(name)
+      used.forEach((i) => projectStore.removeInstance(i.id))
+      projectStore.removeDevice(name)
     },
   })
 }
@@ -172,9 +172,9 @@ const submitForm = () => {
   const materialNo = form.materialNo.trim()
   const doc = form.doc.trim()
   if (editing.value) {
-    counterStore.updateDevice(name, { materialNo, connectors, terminals, doc })
+    projectStore.updateDevice(name, { materialNo, connectors, terminals, doc })
   } else {
-    const ok = counterStore.addDevice({ name, materialNo, connectors, terminals, doc })
+    const ok = projectStore.addDevice({ name, materialNo, connectors, terminals, doc })
     if (!ok) {
       nameError.value = '设备名称已存在'
       return
@@ -185,7 +185,7 @@ const submitForm = () => {
 
 // ---- 导出 ----
 const exportJson = () => {
-  const blob = new Blob([JSON.stringify(counterStore.devices, null, 2)], {
+  const blob = new Blob([JSON.stringify(projectStore.devices, null, 2)], {
     type: 'application/json',
   })
   const url = URL.createObjectURL(blob)
@@ -204,17 +204,29 @@ const importJson = (e) => {
   if (!file) return
   const reader = new FileReader()
   reader.onload = () => {
+    let data
     try {
-      const data = JSON.parse(reader.result)
-      if (confirm('导入将覆盖当前全部设备，确定继续？')) {
-        counterStore.importDevices(data)
-        message.success('导入成功')
-      }
+      data = JSON.parse(reader.result)
     } catch (err) {
       message.error('导入失败：' + err.message)
-    } finally {
       e.target.value = ''
+      return
     }
+    Modal.confirm({
+      title: '导入设备库',
+      content: '导入将覆盖当前全部设备，确定继续？',
+      okText: '导入',
+      cancelText: '取消',
+      onOk() {
+        try {
+          projectStore.importDevices(data)
+          message.success('导入成功')
+        } catch (err) {
+          message.error('导入失败：' + err.message)
+        }
+      },
+    })
+    e.target.value = ''
   }
   reader.readAsText(file)
 }

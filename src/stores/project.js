@@ -185,7 +185,7 @@ function terminalsToWiring(terminals) {
     .join('/')
 }
 
-export const useCounterStore = defineStore('counter', () => {
+export const useProjectStore = defineStore('project', () => {
   // ---- 静态硬件数据（只读，来自 data/pins.js） ----
   const plugs = PLUGS
   const pins = PINS

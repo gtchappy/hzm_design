@@ -20,16 +20,16 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useCounterStore } from '@/stores/counter'
+import { useProjectStore } from '@/stores/project'
 
 const props = defineProps({
   modelValue: { type: Array, default: () => [] },
 })
 const emit = defineEmits(['update:modelValue'])
-const counterStore = useCounterStore()
+const projectStore = useProjectStore()
 
 // 功能类型可选项 = 已配置的功能/信号类型
-const funcOptions = computed(() => Object.keys(counterStore.pin).map((k) => ({ value: k, label: k })))
+const funcOptions = computed(() => Object.keys(projectStore.pin).map((k) => ({ value: k, label: k })))
 
 const cloneList = (arr) => (arr || []).map((t) => ({ name: t.name ?? '', func: t.func ?? '' }))
 const list = ref(cloneList(props.modelValue))

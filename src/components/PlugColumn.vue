@@ -1,12 +1,12 @@
 <template>
   <a-card :title="`Engine Plug ${plug} pin assignment`" :bordered="false">
     <a-card-grid
-      v-for="p in counterStore.pinsByPlug[plug]"
+      v-for="p in projectStore.pinsByPlug[plug]"
       :key="p.id"
       :class="{
         'default-card': 1,
-        'active-card': counterStore.canChoose.includes(p.label),
-        'used-card': counterStore.confirmedTags.includes(p.label),
+        'active-card': projectStore.canChoose.includes(p.label),
+        'used-card': projectStore.confirmedTags.includes(p.label),
       }"
       :style="{ width: gridWidth(p), height: '70px', padding: '0px' }"
       class="pin-cell"
@@ -33,7 +33,7 @@
               class="pin-line"
               :class="{
                 'func-card':
-                  counterStore.pinFunction[counterStore.selectedPinFunc]?.includes(p.label),
+                  projectStore.pinFunction[projectStore.selectedPinFunc]?.includes(p.label),
               }"
             >
               {{ p.signal }}
@@ -90,12 +90,13 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useCounterStore } from '@/stores/counter'
+import { Modal } from 'ant-design-vue'
+import { useProjectStore } from '@/stores/project'
 
 const props = defineProps({
   plug: { type: String, required: true },
 })
-const counterStore = useCounterStore()
+const projectStore = useProjectStore()
 
 const AVATAR_COLORS = {
   A: 'rgb(255, 182, 103)',
@@ -110,49 +111,54 @@ const avatarColor = computed(() => AVATAR_COLORS[props.plug] ?? 'rgb(255, 182, 1
 const gridWidth = (p) => (props.plug === 'E' || p.no > 56 ? '33.3333%' : '25%')
 
 // 该针脚的分配条目（一个针脚可有多条）
-const entriesOf = (p) => counterStore.assignments[p.id] || []
+const entriesOf = (p) => projectStore.assignments[p.id] || []
 const hasContent = (p) => entriesOf(p).length > 0
 
 // 实时计算某条分配的显示文字：序号按当前实例顺序算，删/加自动重排
 const chooseText = (e) => {
-  const idx = counterStore.instances.findIndex((i) => i.id === e.deviceId)
-  const name = counterStore.device[e.deviceId] || ''
+  const idx = projectStore.instances.findIndex((i) => i.id === e.deviceId)
+  const name = projectStore.device[e.deviceId] || ''
   return (idx >= 0 ? `${idx + 1}:${name}` : name) + e.func
 }
 
 // 由一条分配反查其设备的物料号 / 所选插头 / 接线说明（用于悬浮提示）
 const entryInfo = (e) => {
-  const name = counterStore.device[e.deviceId]
-  const dev = counterStore.devices.find((d) => d.name === name)
+  const name = projectStore.device[e.deviceId]
+  const dev = projectStore.devices.find((d) => d.name === name)
   if (!dev) return { materialNo: '', connector: '', define: '' }
-  const partNo = counterStore.instanceConnectors[e.deviceId]
+  const partNo = projectStore.instanceConnectors[e.deviceId]
   const conn = dev.connectors?.find((c) => c.partNo === partNo)
   return {
     materialNo: dev.materialNo || '',
     connector: conn ? (conn.desc ? `${conn.partNo}（${conn.desc}）` : conn.partNo) : partNo || '',
-    define: counterStore.deviceDefine[name] || '',
+    define: projectStore.deviceDefine[name] || '',
   }
 }
 
 // 当前所选设备可用的功能（添加菜单）
 const currentDeviceFuncs = computed(
-  () => counterStore.devicePinDefine[counterStore.currentDevice] || [],
+  () => projectStore.devicePinDefine[projectStore.currentDevice] || [],
 )
 
 // 添加一条分配（脚上已有分配时二次确认）
 const addEntry = (func, p) => {
-  const list = counterStore.assignments[p.id]
+  const doAdd = () =>
+    projectStore.addAssignment(p.id, { deviceId: projectStore.selectedId, func, remark: '' })
+  const list = projectStore.assignments[p.id]
   if (list && list.length > 0) {
-    if (!confirm(`该针脚已分配 ${list.length} 个传感器针脚，确定再添加一个？`)) return
+    Modal.confirm({
+      title: '该针脚已有分配',
+      content: `该针脚已分配 ${list.length} 个传感器针脚，确定再添加一个？`,
+      okText: '添加',
+      cancelText: '取消',
+      onOk: doAdd,
+    })
+  } else {
+    doAdd()
   }
-  counterStore.addAssignment(p.id, {
-    deviceId: counterStore.selectedId,
-    func,
-    remark: '',
-  })
 }
 // 删除某一条分配
-const removeEntry = (p, index) => counterStore.removeAssignment(p.id, index)
+const removeEntry = (p, index) => projectStore.removeAssignment(p.id, index)
 </script>
 
 <style scoped>

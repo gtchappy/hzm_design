@@ -4,7 +4,7 @@
     <a-tabs>
       <a-tab-pane key="types" tab="功能类型（设备针脚关联）">
         <PinMapEditor
-          :items="counterStore.pinTypes"
+          :items="projectStore.pinTypes"
           :api="typesApi"
           desc="维护「设备的针脚↔功能关联」里可选的功能类型，以及每个功能可分配的针脚。"
           name-placeholder="如：SpeedSignal"
@@ -13,7 +13,7 @@
       </a-tab-pane>
       <a-tab-pane key="functions" tab="功能查询">
         <PinMapEditor
-          :items="counterStore.pinFunctions"
+          :items="projectStore.pinFunctions"
           :api="functionsApi"
           desc="维护「功能查询」下拉里的各功能，及其对应高亮的针脚。"
           name-placeholder="如：Binary Input"
@@ -26,24 +26,24 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useCounterStore } from '@/stores/counter'
+import { useProjectStore } from '@/stores/project'
 import PinMapEditor from './PinMapEditor.vue'
 
-const counterStore = useCounterStore()
+const projectStore = useProjectStore()
 const open = ref(false)
 
 const typesApi = {
-  add: counterStore.addPinType,
-  update: counterStore.updatePinType,
-  remove: counterStore.removePinType,
-  importList: counterStore.importPinTypes,
-  reset: counterStore.resetPinTypes,
+  add: projectStore.addPinType,
+  update: projectStore.updatePinType,
+  remove: projectStore.removePinType,
+  importList: projectStore.importPinTypes,
+  reset: projectStore.resetPinTypes,
 }
 const functionsApi = {
-  add: counterStore.addPinFunction,
-  update: counterStore.updatePinFunction,
-  remove: counterStore.removePinFunction,
-  importList: counterStore.importPinFunctions,
-  reset: counterStore.resetPinFunctions,
+  add: projectStore.addPinFunction,
+  update: projectStore.updatePinFunction,
+  remove: projectStore.removePinFunction,
+  importList: projectStore.importPinFunctions,
+  reset: projectStore.resetPinFunctions,
 }
 </script>

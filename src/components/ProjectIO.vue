@@ -14,13 +14,13 @@
 
 <script setup>
 import { ref } from 'vue'
-import { message } from 'ant-design-vue'
-import { useCounterStore } from '@/stores/counter'
+import { message, Modal } from 'ant-design-vue'
+import { useProjectStore } from '@/stores/project'
 
-const counterStore = useCounterStore()
+const projectStore = useProjectStore()
 
 const doExport = () => {
-  const data = counterStore.exportProject()
+  const data = projectStore.exportProject()
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -37,17 +37,29 @@ const doImport = (e) => {
   if (!file) return
   const reader = new FileReader()
   reader.onload = () => {
+    let data
     try {
-      const data = JSON.parse(reader.result)
-      if (confirm('导入项目将覆盖当前全部数据（设备库、功能数据、MVC 针脚分配等），确定继续？')) {
-        counterStore.importProject(data)
-        message.success('项目导入成功')
-      }
+      data = JSON.parse(reader.result)
     } catch (err) {
       message.error('导入失败：' + err.message)
-    } finally {
       e.target.value = ''
+      return
     }
+    Modal.confirm({
+      title: '导入项目',
+      content: '导入项目将覆盖当前全部数据（设备库、功能数据、MVC 针脚分配等），确定继续？',
+      okText: '导入',
+      cancelText: '取消',
+      onOk() {
+        try {
+          projectStore.importProject(data)
+          message.success('项目导入成功')
+        } catch (err) {
+          message.error('导入失败：' + err.message)
+        }
+      },
+    })
+    e.target.value = ''
   }
   reader.readAsText(file)
 }

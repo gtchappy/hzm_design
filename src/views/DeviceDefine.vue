@@ -16,7 +16,7 @@
       @change="handleChange"
     ></a-select>
     <a-row :gutter="[16, 16]">
-      <a-col :xs="24" :sm="12" :md="8" v-for="(inst, index) in counterStore.instances" :key="inst.id">
+      <a-col :xs="24" :sm="12" :md="8" v-for="(inst, index) in projectStore.instances" :key="inst.id">
         <a-card hoverable size="small" class="device-card">
           <template #title>
             <div class="device-title">
@@ -43,7 +43,7 @@
             <span class="conn-label">插头：</span>
             <a-select
               v-if="connectorOptions(inst).length"
-              v-model:value="counterStore.instanceConnectors[inst.id]"
+              v-model:value="projectStore.instanceConnectors[inst.id]"
               size="small"
               style="min-width: 170px"
               placeholder="选择插头"
@@ -81,14 +81,14 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { useCounterStore } from '@/stores/counter'
+import { useProjectStore } from '@/stores/project'
 import DeviceLibrary from '@/components/DeviceLibrary.vue'
 import PinDataLibrary from '@/components/PinDataLibrary.vue'
 
-const counterStore = useCounterStore()
+const projectStore = useProjectStore()
 
 // 设备名 → 设备库对象，用来取该设备的针脚/物料号/插头配置
-const deviceMap = computed(() => Object.fromEntries(counterStore.devices.map((d) => [d.name, d])))
+const deviceMap = computed(() => Object.fromEntries(projectStore.devices.map((d) => [d.name, d])))
 const terminalsOf = (inst) => deviceMap.value[inst.name]?.terminals ?? []
 const materialNoOf = (inst) => deviceMap.value[inst.name]?.materialNo ?? ''
 const connectorsOf = (inst) => deviceMap.value[inst.name]?.connectors ?? []
@@ -100,7 +100,7 @@ const connectorOptions = (inst) =>
 
 // 查该设备实例某个功能被分配到的 MVC 针脚（可能多个）
 const assignedPinsFor = (inst, func) => {
-  const a = counterStore.assignments
+  const a = projectStore.assignments
   const pins = []
   for (const pinId in a) {
     if ((a[pinId] || []).some((e) => e.deviceId === inst.id && e.func === func)) pins.push(pinId)
@@ -115,13 +115,13 @@ const summaryOf = (inst) => {
 }
 
 // 可选设备 = 设备库（由 DeviceLibrary 维护）
-const options = computed(() => counterStore.devices.map((d) => ({ value: d.name, label: d.name })))
+const options = computed(() => projectStore.devices.map((d) => ({ value: d.name, label: d.name })))
 
 // 多选框选中的设备名（去重）。始终与工作区实例保持同步
-const uniqueNames = () => [...new Set(counterStore.instances.map((i) => i.name))]
+const uniqueNames = () => [...new Set(projectStore.instances.map((i) => i.name))]
 const selectDeviceValue = ref(uniqueNames())
 watch(
-  () => counterStore.instances,
+  () => projectStore.instances,
   () => {
     selectDeviceValue.value = uniqueNames()
   },
@@ -130,18 +130,18 @@ watch(
 
 // 多选框变化：新选中的名字各加一个实例；取消选中的名字删除其全部实例
 const handleChange = (names) => {
-  const have = new Set(counterStore.instances.map((i) => i.name))
+  const have = new Set(projectStore.instances.map((i) => i.name))
   for (const name of names) {
-    if (!have.has(name)) counterStore.addInstance(name)
+    if (!have.has(name)) projectStore.addInstance(name)
   }
-  for (const inst of counterStore.instances.filter((i) => !names.includes(i.name))) {
-    counterStore.removeInstance(inst.id)
+  for (const inst of projectStore.instances.filter((i) => !names.includes(i.name))) {
+    projectStore.removeInstance(inst.id)
   }
 }
 // 「增加」：再加一个同型号实例
-const addPin = (inst) => counterStore.addInstance(inst.name)
+const addPin = (inst) => projectStore.addInstance(inst.name)
 // 「删除」：删除该实例（连同其针脚分配、所选插头）
-const removePin = (inst) => counterStore.removeInstance(inst.id)
+const removePin = (inst) => projectStore.removeInstance(inst.id)
 </script>
 <style scoped>
 /* 使用深度选择器穿透scoped隔离 */

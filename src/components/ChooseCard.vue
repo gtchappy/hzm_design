@@ -2,7 +2,7 @@
   <div style="background-color: #ececec; padding: 0 20px 20px 20px">
     <a-row :gutter="10">
       <a-col
-        v-for="plug in counterStore.plugs"
+        v-for="plug in projectStore.plugs"
         :key="plug"
         :span="12"
         :style="{ marginTop: '30px' }"
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { useCounterStore } from '@/stores/counter'
+import { useProjectStore } from '@/stores/project'
 import PlugColumn from './PlugColumn.vue'
-const counterStore = useCounterStore()
+const projectStore = useProjectStore()
 </script>

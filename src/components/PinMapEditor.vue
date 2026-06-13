@@ -76,7 +76,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 import { PINS, labelOf } from '@/data/pins'
 
 const props = defineProps({
@@ -151,17 +151,29 @@ const importJson = (e) => {
   if (!file) return
   const reader = new FileReader()
   reader.onload = () => {
+    let data
     try {
-      const data = JSON.parse(reader.result)
-      if (confirm('导入将覆盖当前全部数据，确定继续？')) {
-        props.api.importList(data)
-        message.success('导入成功')
-      }
+      data = JSON.parse(reader.result)
     } catch (err) {
       message.error('导入失败：' + err.message)
-    } finally {
       e.target.value = ''
+      return
     }
+    Modal.confirm({
+      title: '导入数据',
+      content: '导入将覆盖当前全部数据，确定继续？',
+      okText: '导入',
+      cancelText: '取消',
+      onOk() {
+        try {
+          props.api.importList(data)
+          message.success('导入成功')
+        } catch (err) {
+          message.error('导入失败：' + err.message)
+        }
+      },
+    })
+    e.target.value = ''
   }
   reader.readAsText(file)
 }
