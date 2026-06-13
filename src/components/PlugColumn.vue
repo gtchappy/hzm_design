@@ -14,7 +14,11 @@
       <a-popover :title="p.tip" trigger="hover">
         <span class="pin-badge" :style="{ backgroundColor: avatarColor }">{{ p.id }}</span>
       </a-popover>
-      <a-dropdown :trigger="['click']">
+      <a-dropdown
+        :trigger="['click']"
+        :open="openPinId === p.id"
+        @openChange="(open) => (openPinId = open ? p.id : '')"
+      >
         <a-tooltip placement="top">
           <template #title>
             <div>{{ p.label }}</div>
@@ -59,12 +63,19 @@
         </a-tooltip>
 
         <template #overlay>
-          <div class="assign-panel" @click.stop>
+          <div class="assign-panel" @mousedown.stop @click.stop>
             <template v-if="entriesOf(p).length">
               <div class="panel-title">已分配（{{ entriesOf(p).length }}）</div>
               <div v-for="(e, i) in entriesOf(p)" :key="i" class="assign-row">
                 <span class="assign-choose" :title="chooseText(e)">{{ chooseText(e) }}</span>
-                <a-input v-model:value="e.remark" size="small" placeholder="备注" style="width: 96px" />
+                <a-input
+                  v-model:value="e.remark"
+                  size="small"
+                  placeholder="备注"
+                  style="width: 96px"
+                  @mousedown.stop
+                  @click.stop
+                />
                 <a-button type="text" danger size="small" @click="removeEntry(p, i)">删除</a-button>
               </div>
               <a-divider style="margin: 8px 0" />
@@ -89,7 +100,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { Modal } from 'ant-design-vue'
 import { useProjectStore } from '@/stores/project'
 
@@ -97,6 +108,7 @@ const props = defineProps({
   plug: { type: String, required: true },
 })
 const projectStore = useProjectStore()
+const openPinId = ref('')
 
 const AVATAR_COLORS = {
   A: 'rgb(255, 182, 103)',
