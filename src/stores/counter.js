@@ -43,7 +43,6 @@ function normalizeAssignments(obj) {
       .map((e) => ({
         deviceId: String(e.deviceId ?? ''),
         func: String(e.func ?? ''),
-        choose: String(e.choose ?? ''),
         remark: String(e.remark ?? ''),
       }))
     if (list.length) out[pinId] = list
@@ -330,7 +329,6 @@ export const useCounterStore = defineStore('counter', () => {
     assignments.value[pinId].push({
       deviceId: String(entry?.deviceId ?? ''),
       func: String(entry?.func ?? ''),
-      choose: String(entry?.choose ?? ''),
       remark: String(entry?.remark ?? ''),
     })
   }

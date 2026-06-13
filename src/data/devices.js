@@ -42,10 +42,7 @@ const GND_PINS = [
 // 功能类型 → 可分配针脚（设备「针脚↔功能」关联的可选功能，也决定 MVC 的可分配针脚）
 // 用针脚 id 维护，store 会派生成完整 label 供匹配。
 export const DEFAULT_PIN_TYPES = [
-  { name: 'GND', pins: GND_PINS },
   { name: 'SpeedSignal', pins: ['B2', 'B6', 'B10'] },
-  { name: '_12V', pins: ['B1', 'B5', 'B9'] },
-  { name: 'AI', pins: ['A1', 'A2'] },
 ]
 
 // 功能查询 → 高亮针脚

@@ -19,7 +19,7 @@
           <template #title>
             <div>{{ p.label }}</div>
             <div v-for="(e, i) in entriesOf(p)" :key="i" style="margin-top: 4px">
-              <div>{{ entriesOf(p).length > 1 ? i + 1 + '. ' : '' }}设备：{{ e.choose }}</div>
+              <div>{{ entriesOf(p).length > 1 ? i + 1 + '. ' : '' }}设备：{{ chooseText(e) }}</div>
               <div v-if="entryInfo(e).materialNo">物料号：{{ entryInfo(e).materialNo }}</div>
               <div v-if="entryInfo(e).connector">插头：{{ entryInfo(e).connector }}</div>
               <div v-if="entryInfo(e).define">定义：{{ entryInfo(e).define }}</div>
@@ -43,7 +43,7 @@
               <div v-if="entryInfo(entriesOf(p)[0]).materialNo" class="pin-line pin-sub">
                 {{ entryInfo(entriesOf(p)[0]).materialNo }}
               </div>
-              <div class="pin-line pin-sub">{{ entriesOf(p)[0].choose }}</div>
+              <div class="pin-line pin-sub">{{ chooseText(entriesOf(p)[0]) }}</div>
               <div v-if="entriesOf(p)[0].remark" class="pin-line pin-sub">
                 {{ entriesOf(p)[0].remark }}
               </div>
@@ -53,7 +53,7 @@
               <div class="pin-line pin-sub" style="font-weight: 600">
                 共 {{ entriesOf(p).length }} 个传感器
               </div>
-              <div class="pin-line pin-sub">{{ entriesOf(p)[0].choose }}</div>
+              <div class="pin-line pin-sub">{{ chooseText(entriesOf(p)[0]) }}</div>
             </template>
           </div>
         </a-tooltip>
@@ -63,7 +63,7 @@
             <template v-if="entriesOf(p).length">
               <div class="panel-title">已分配（{{ entriesOf(p).length }}）</div>
               <div v-for="(e, i) in entriesOf(p)" :key="i" class="assign-row">
-                <span class="assign-choose" :title="e.choose">{{ e.choose }}</span>
+                <span class="assign-choose" :title="chooseText(e)">{{ chooseText(e) }}</span>
                 <a-input v-model:value="e.remark" size="small" placeholder="备注" style="width: 96px" />
                 <a-button type="text" danger size="small" @click="removeEntry(p, i)">删除</a-button>
               </div>
@@ -113,6 +113,13 @@ const gridWidth = (p) => (props.plug === 'E' || p.no > 56 ? '33.3333%' : '25%')
 const entriesOf = (p) => counterStore.assignments[p.id] || []
 const hasContent = (p) => entriesOf(p).length > 0
 
+// 实时计算某条分配的显示文字：序号按当前实例顺序算，删/加自动重排
+const chooseText = (e) => {
+  const idx = counterStore.instances.findIndex((i) => i.id === e.deviceId)
+  const name = counterStore.device[e.deviceId] || ''
+  return (idx >= 0 ? `${idx + 1}:${name}` : name) + e.func
+}
+
 // 由一条分配反查其设备的物料号 / 所选插头 / 接线说明（用于悬浮提示）
 const entryInfo = (e) => {
   const name = counterStore.device[e.deviceId]
@@ -141,7 +148,6 @@ const addEntry = (func, p) => {
   counterStore.addAssignment(p.id, {
     deviceId: counterStore.selectedId,
     func,
-    choose: (counterStore.currentDeviceLabel || counterStore.currentDevice) + func,
     remark: '',
   })
 }
