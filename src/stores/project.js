@@ -296,6 +296,10 @@ export const useProjectStore = defineStore('project', () => {
   // 结构：{ [pinId]: [ { deviceId, func, choose, remark } ] }
   const assignments = ref(normalizeAssignments(ws0.assignments))
 
+  // 发火顺序回写：物理针脚 → 缸号。独立于 assignments，互不干扰。
+  // 结构：{ [pinId]: 缸号 }（一个 INJ 的 +/− 两个针脚都写同一个缸号）
+  const cylinderMap = ref(isObj(ws0.cylinderMap) ? { ...ws0.cylinderMap } : {})
+
   // 已占用针脚（蓝色）：由 assignments 派生，恒与分配一致
   const confirmedTags = computed(() =>
     Object.keys(assignments.value)
@@ -305,7 +309,7 @@ export const useProjectStore = defineStore('project', () => {
 
   // 工作区任何变化自动落 localStorage
   watch(
-    [instances, assignments, instanceConnectors],
+    [instances, assignments, instanceConnectors, cylinderMap],
     () => {
       try {
         localStorage.setItem(
@@ -314,6 +318,7 @@ export const useProjectStore = defineStore('project', () => {
             instances: instances.value,
             assignments: assignments.value,
             instanceConnectors: instanceConnectors.value,
+            cylinderMap: cylinderMap.value,
           }),
         )
       } catch (e) {
@@ -337,6 +342,29 @@ export const useProjectStore = defineStore('project', () => {
     if (!list) return
     list.splice(index, 1)
     if (list.length === 0) delete assignments.value[pinId]
+  }
+
+  // ---- 发火顺序：缸号回写 ----
+  // 批量回写发火顺序。entries: [{ pins:[pinId...], cylinder }]，每个 INJ 的两针脚都写。
+  // 整体替换（先清空再写），保证侧边栏的结果即为当前缸号映射。
+  const applyFiringOrder = (entries) => {
+    const next = {}
+    for (const e of entries || []) {
+      const cyl = String(e?.cylinder ?? '').trim()
+      if (!cyl) continue
+      for (const pinId of e?.pins || []) next[pinId] = cyl
+    }
+    cylinderMap.value = next
+  }
+  const clearCylinder = (pinId) => {
+    if (pinId in cylinderMap.value) {
+      const next = { ...cylinderMap.value }
+      delete next[pinId]
+      cylinderMap.value = next
+    }
+  }
+  const clearAllCylinders = () => {
+    cylinderMap.value = {}
   }
 
   // ---- 工作区设备实例的增删 ----
@@ -372,6 +400,7 @@ export const useProjectStore = defineStore('project', () => {
       instances: clone(instances.value),
       assignments: clone(assignments.value),
       instanceConnectors: clone(instanceConnectors.value),
+      cylinderMap: clone(cylinderMap.value),
     },
   })
 
@@ -387,6 +416,7 @@ export const useProjectStore = defineStore('project', () => {
     instances.value = instancesFromWorkspace(ws)
     assignments.value = normalizeAssignments(ws.assignments)
     instanceConnectors.value = isObj(ws.instanceConnectors) ? clone(ws.instanceConnectors) : {}
+    cylinderMap.value = isObj(ws.cylinderMap) ? clone(ws.cylinderMap) : {}
     // 清空临时选择与高亮（导入后没有“当前选中”的设备）
     canChoose.value = []
     currentDevice.value = ''
@@ -441,6 +471,11 @@ export const useProjectStore = defineStore('project', () => {
     assignments,
     addAssignment,
     removeAssignment,
+    // 发火顺序：缸号回写
+    cylinderMap,
+    applyFiringOrder,
+    clearCylinder,
+    clearAllCylinders,
     // 项目级导入导出
     exportProject,
     importProject,

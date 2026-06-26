@@ -69,7 +69,7 @@ const SIGNALS = {
     'GND', 'VTDI20-IN',
   ],
   E: [
-    'DOL1-OUT', 'INJ3+', 'INJ13-', 'DOL2-OUT', 'INJ14+',
+    'DOL1-OUT', 'INJ13+', 'INJ13-', 'DOL2-OUT', 'INJ14+',
     'INJ14-', 'DOL3-OUT', 'INJ15+', 'INJ15-', 'DOL4-OUT',
     'INJ16+', 'INJ16-', 'PGND', 'INJ17+', 'INJ17-',
     'PGND', 'INJ18+', 'INJ18-', 'HB3A/FB3+', 'INJ19+',

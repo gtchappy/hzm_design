@@ -31,6 +31,9 @@
     </span>
     <ProjectIO />
 
+    <a-button type="primary" @click="firingOpen = true">发火顺序</a-button>
+    <FiringOrderDrawer v-model:open="firingOpen" />
+
     <a-float-button
       v-if="projectStore.deviceDefine[selectedDevice]"
       shape="square"
@@ -49,8 +52,10 @@
 import { ref, defineEmits, computed } from 'vue'
 import { useProjectStore } from '@/stores/project'
 import ProjectIO from './ProjectIO.vue'
+import FiringOrderDrawer from './FiringOrderDrawer.vue'
 const emit = defineEmits(['emitSelectedDevice'])
 const selectedDevice = ref('')
+const firingOpen = ref(false)
 const projectStore = useProjectStore()
 
 // 当前功能查询项的针脚统计：总数 / 已用（已被占用）/ 剩余

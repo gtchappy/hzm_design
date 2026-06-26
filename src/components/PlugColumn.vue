@@ -7,6 +7,7 @@
         'default-card': 1,
         'active-card': projectStore.canChoose.includes(p.label),
         'used-card': projectStore.confirmedTags.includes(p.label),
+        'cyl-card': cylinderOf(p),
       }"
       :style="{ width: gridWidth(p), height: '70px', padding: '0px' }"
       class="pin-cell"
@@ -22,6 +23,7 @@
         <a-tooltip placement="top">
           <template #title>
             <div>{{ p.label }}</div>
+            <div v-if="cylinderOf(p)" style="margin-top: 4px">发火缸号：缸{{ cylinderOf(p) }}</div>
             <div v-for="(e, i) in entriesOf(p)" :key="i" style="margin-top: 4px">
               <div>{{ entriesOf(p).length > 1 ? i + 1 + '. ' : '' }}设备：{{ chooseText(e) }}</div>
               <div v-if="entryInfo(e).materialNo">物料号：{{ entryInfo(e).materialNo }}</div>
@@ -31,9 +33,14 @@
             </div>
           </template>
           <div class="pin-content">
-            <!-- 未分配：显示信号名（信号名仍可在悬浮提示查看） -->
+            <!-- 发火顺序缸号：橙底白字，显示信号名 + 缸号 -->
+            <template v-if="cylinderOf(p)">
+              <div class="pin-line">{{ p.signal }}</div>
+              <div class="pin-line cyl-line">缸{{ cylinderOf(p) }}</div>
+            </template>
+            <!-- 未分配且无缸号：显示信号名（信号名仍可在悬浮提示查看） -->
             <div
-              v-if="!hasContent(p)"
+              v-if="!hasContent(p) && !cylinderOf(p)"
               class="pin-line"
               :class="{
                 'func-card':
@@ -53,7 +60,7 @@
               </div>
             </template>
             <!-- 多条：条数 + 首条 -->
-            <template v-else>
+            <template v-else-if="entriesOf(p).length > 1">
               <div class="pin-line pin-sub" style="font-weight: 600">
                 共 {{ entriesOf(p).length }} 个传感器
               </div>
@@ -121,6 +128,9 @@ const avatarColor = computed(() => AVATAR_COLORS[props.plug] ?? 'rgb(255, 182, 1
 
 // E 插头每行 3 个；其余插头最后两排（57 号及以后）每行 3 个，前面每行 4 个
 const gridWidth = (p) => (props.plug === 'E' || p.no > 56 ? '33.3333%' : '25%')
+
+// 该针脚回写的发火顺序缸号（无则空）
+const cylinderOf = (p) => projectStore.cylinderMap[p.id]
 
 // 该针脚的分配条目（一个针脚可有多条）
 const entriesOf = (p) => projectStore.assignments[p.id] || []
@@ -215,6 +225,17 @@ const removeEntry = (p, index) => projectStore.removeAssignment(p.id, index)
   font-size: 10px;
   font-weight: 600;
 }
+/* 发火顺序缸号：橙色背景 + 白色文字 */
+.cyl-card {
+  background-color: #fa541c;
+  color: #fff;
+}
+.cyl-line {
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+}
+
 /* 针脚文字区：占满整格，每行单行显示，超出省略，完整内容看悬浮提示 */
 .pin-content {
   width: 100%;
