@@ -20,16 +20,26 @@
       <span class="hint">最多 {{ FIRING_CELLS.length }} 缸 · 边操作边自动回写</span>
     </div>
 
-    <!-- 2. 依次填写发火顺序 -->
+    <!-- 2. 依次填写各次发火的缸号 -->
     <div v-if="orderValues.length" class="section">
-      <div class="section-title">② 依次填写发火顺序</div>
+      <div class="section-title section-head">
+        <span>② 依次填写各次发火的缸号</span>
+        <a-button size="small" type="link" @click="fillSequential">填充 1…N</a-button>
+      </div>
       <div class="order-grid">
-        <div v-for="(_, i) in orderValues" :key="i" class="order-item">
+        <div
+          v-for="(_, i) in orderValues"
+          :key="i"
+          class="order-item"
+          :class="{ current: i === nextSlot, peer: i === hoverSlot }"
+          @mouseenter="hoverSlot = i"
+          @mouseleave="hoverSlot = -1"
+        >
           <span class="order-no">第{{ i + 1 }}个</span>
           <a-input
             v-model:value="orderValues[i]"
             size="small"
-            placeholder="顺序值"
+            placeholder="缸号"
             :status="isDup(i) ? 'error' : ''"
           />
         </div>
@@ -38,15 +48,20 @@
         v-if="dupValues.length"
         type="error"
         show-icon
-        :message="`发火顺序不能重复：${dupValues.join('、')}`"
+        :message="`缸号不能重复：${dupValues.join('、')}`"
         style="margin-top: 10px"
       />
     </div>
 
-    <!-- 3. 按点击顺序点选喷油器输出 -->
+    <!-- 3. 按发火顺序点选喷油器输出 -->
     <div v-if="orderValues.length" class="section">
-      <div class="section-title">
-        ③ 按点击顺序点选（已选 {{ clickedCells.length }} / {{ cylinderCount }}）
+      <div class="section-title">③ 按发火顺序点选喷油器输出（已放置 {{ assignedCount }} / {{ cylinderCount }}）</div>
+      <div class="placing-hint" :class="{ done: nextSlot < 0 }">
+        <template v-if="nextSlot >= 0">
+          正在放置：<b>第 {{ nextSlot + 1 }} 个</b> → 缸
+          <b>{{ orderValues[nextSlot] || '（未填缸号）' }}</b>，请点击对应的喷油器输出
+        </template>
+        <template v-else>✓ 已全部放置完成</template>
       </div>
       <div class="bank-table">
         <div v-for="bank in FIRING_BANKS" :key="bank" class="bank-row">
@@ -56,19 +71,29 @@
             :key="cell.cell"
             type="button"
             class="bank-cell"
-            :class="{ selected: orderOf(cell.cell) > 0 }"
+            :class="{
+              selected: orderOf(cell.cell) > 0,
+              peer: orderOf(cell.cell) > 0 && orderOf(cell.cell) - 1 === hoverSlot,
+            }"
             @click="toggleCell(cell.cell)"
+            @mouseenter="orderOf(cell.cell) > 0 && (hoverSlot = orderOf(cell.cell) - 1)"
+            @mouseleave="hoverSlot = -1"
           >
             <span v-if="orderOf(cell.cell) > 0" class="cell-order">{{ orderOf(cell.cell) }}</span>
             {{ cell.cell }}: INJ{{ cell.inj }}
           </button>
         </div>
       </div>
+      <a-alert
+        v-if="remaining > 0"
+        type="info"
+        show-icon
+        :message="`还差 ${remaining} 个缸未指定喷油器`"
+        style="margin-top: 10px"
+      />
       <div class="row-actions">
-        <a-button size="small" :disabled="!clickedCells.length" @click="undoLast">撤销上一步</a-button>
-        <a-button size="small" danger :disabled="!clickedCells.length" @click="clearSelection">
-          清空
-        </a-button>
+        <a-button size="small" :disabled="!assignedCount" @click="undoLast">撤销上一步</a-button>
+        <a-button size="small" danger :disabled="!assignedCount" @click="clearSelection">清空</a-button>
       </div>
     </div>
 
@@ -97,41 +122,75 @@ const open = defineModel('open', { type: Boolean, default: false })
 const projectStore = useProjectStore()
 
 const cylinderCount = ref(null)
-const orderValues = ref([]) // 第 N 个输入框的值
-const clickedCells = ref([]) // 被点单元格名，按点击顺序
+const orderValues = ref([]) // 槽位 i 的缸号
+const assignedCells = ref([]) // 槽位 i 选定的单元格名（null=未指定）；与 orderValues 一一对应、互不滑动
+const hoverSlot = ref(-1) // 双向联动高亮的当前槽位
 let syncing = false // 回填期间抑制自动回写
 
 const cellsOfBank = (bank) => FIRING_CELLS.filter((c) => c.bank === bank)
 
-// 缸数变化：同步输入框数量（保留已填值），并裁掉超出的已点选
+// 缸数变化：同步两个等长数组（保留已填值/已选格子，多删少补）
 watch(cylinderCount, (n) => {
   const count = Number(n) || 0
-  const next = orderValues.value.slice(0, count)
-  while (next.length < count) next.push('')
-  orderValues.value = next
-  if (clickedCells.value.length > count) clickedCells.value = clickedCells.value.slice(0, count)
+  const ov = orderValues.value.slice(0, count)
+  while (ov.length < count) ov.push('')
+  orderValues.value = ov
+  const ac = assignedCells.value.slice(0, count)
+  while (ac.length < count) ac.push(null)
+  assignedCells.value = ac
 })
 
-// 某单元格是第几个被点（1-based），未点返回 0
-const orderOf = (cell) => clickedCells.value.indexOf(cell) + 1
+// 第一个未指定单元格的槽位（即"正在放置第几个"）；全部已指定返回 -1
+const nextSlot = computed(() => {
+  const count = Number(cylinderCount.value) || 0
+  for (let i = 0; i < count; i++) if (!assignedCells.value[i]) return i
+  return -1
+})
+const assignedCount = computed(() => assignedCells.value.filter(Boolean).length)
+const remaining = computed(() => (Number(cylinderCount.value) || 0) - assignedCount.value)
 
+// 某单元格被指定到第几个槽位（1-based），未指定返回 0
+const orderOf = (cell) => assignedCells.value.indexOf(cell) + 1
+
+// 点格子：已指定→取消该格子所在槽位（不影响其它槽位）；未指定→填入下一个空槽位
 const toggleCell = (cell) => {
-  const idx = clickedCells.value.indexOf(cell)
-  if (idx >= 0) {
-    clickedCells.value.splice(idx, 1) // 再点一次 = 取消
+  const j = assignedCells.value.indexOf(cell)
+  if (j >= 0) {
+    const next = [...assignedCells.value]
+    next[j] = null
+    assignedCells.value = next
     return
   }
-  if (clickedCells.value.length >= (Number(cylinderCount.value) || 0)) {
-    message.warning(`已点满 ${cylinderCount.value} 个，请先取消再选`)
+  const slot = nextSlot.value
+  if (slot < 0) {
+    message.warning(`已放置满 ${cylinderCount.value} 个，请先取消再选`)
     return
   }
-  clickedCells.value.push(cell)
+  const next = [...assignedCells.value]
+  next[slot] = cell
+  assignedCells.value = next
 }
 
-const undoLast = () => clickedCells.value.pop()
-const clearSelection = () => (clickedCells.value = [])
+// 撤销：清掉最后一个已指定的槽位
+const undoLast = () => {
+  const next = [...assignedCells.value]
+  for (let i = next.length - 1; i >= 0; i--) {
+    if (next[i]) {
+      next[i] = null
+      break
+    }
+  }
+  assignedCells.value = next
+}
+const clearSelection = () => (assignedCells.value = assignedCells.value.map(() => null))
 
-// 缸号查重：统计非空值出现次数，找出重复的值
+// 一键把缸号填成 1…N（顺序场景常用，可再个别调整）
+const fillSequential = () => {
+  const count = Number(cylinderCount.value) || 0
+  orderValues.value = Array.from({ length: count }, (_, i) => String(i + 1))
+}
+
+// 缸号查重
 const dupSet = computed(() => {
   const counts = {}
   for (const v of orderValues.value) {
@@ -147,12 +206,15 @@ const isDup = (i) => {
   return !!k && dupSet.value.has(k)
 }
 
-// 对应关系：第 i 个被点单元格 ↔ 第 i 个输入框的值
+// 对应关系：槽位 i 的单元格 ↔ 槽位 i 的缸号
 const pairs = computed(() =>
-  clickedCells.value.map((cell, i) => {
-    const c = FIRING_CELL_BY_NAME[cell]
-    return { cylinder: orderValues.value[i], cell, inj: c.inj, pins: c.pins }
-  }),
+  assignedCells.value
+    .map((cell, i) => {
+      if (!cell) return null
+      const c = FIRING_CELL_BY_NAME[cell]
+      return { cylinder: orderValues.value[i], cell, inj: c.inj, pins: c.pins }
+    })
+    .filter(Boolean),
 )
 
 // 实时自动回写：对应关系一变就写入针脚分配（空值条目会被 store 跳过）
@@ -162,29 +224,49 @@ watch(
   (list) => {
     if (syncing) return
     if (dupSet.value.size) return
-    projectStore.applyFiringOrder(list.map((p) => ({ pins: p.pins, cylinder: p.cylinder })))
+    projectStore.applyFiringOrder(
+      list.map((p) => ({ cell: p.cell, pins: p.pins, cylinder: p.cylinder })),
+    )
   },
   { deep: true },
 )
 
-// 打开时从已有缸号回填，保证实时回写不会清掉之前的数据；缸号按数值升序还原点击顺序
+// 打开时回填：优先按持久化的录入次序还原，没有再退回按缸号数值升序
 const initFromStore = () => {
   const map = projectStore.cylinderMap
-  const found = []
-  for (const c of FIRING_CELLS) {
-    const cyl = c.pins.map((id) => map[id]).find((v) => v != null)
-    if (cyl != null) found.push({ cell: c.cell, cylinder: String(cyl) })
+  const cylOfCell = (cellName) => {
+    const c = FIRING_CELL_BY_NAME[cellName]
+    if (!c) return null
+    const v = c.pins.map((id) => map[id]).find((x) => x != null)
+    return v != null ? String(v) : null
   }
-  found.sort((a, b) => {
-    const na = Number(a.cylinder)
-    const nb = Number(b.cylinder)
-    if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb
-    return a.cylinder.localeCompare(b.cylinder)
-  })
+  let ordered = []
+  const seq = projectStore.firingSequence
+  if (Array.isArray(seq) && seq.length) {
+    // 按录入次序，过滤掉已不在 cylinderMap 里的陈旧项
+    for (const cellName of seq) {
+      const cyl = cylOfCell(cellName)
+      if (cyl != null) ordered.push({ cell: cellName, cylinder: cyl })
+    }
+  }
+  if (!ordered.length) {
+    // 兜底：没有录入次序时按缸号数值升序
+    for (const c of FIRING_CELLS) {
+      const cyl = c.pins.map((id) => map[id]).find((v) => v != null)
+      if (cyl != null) ordered.push({ cell: c.cell, cylinder: String(cyl) })
+    }
+    ordered.sort((a, b) => {
+      const na = Number(a.cylinder)
+      const nb = Number(b.cylinder)
+      if (!Number.isNaN(na) && !Number.isNaN(nb)) return na - nb
+      return a.cylinder.localeCompare(b.cylinder)
+    })
+  }
   syncing = true
-  clickedCells.value = found.map((f) => f.cell)
-  orderValues.value = found.map((f) => f.cylinder)
-  cylinderCount.value = found.length || null
+  assignedCells.value = ordered.map((f) => f.cell)
+  orderValues.value = ordered.map((f) => f.cylinder)
+  cylinderCount.value = ordered.length || null
+  hoverSlot.value = -1
   nextTick(() => {
     syncing = false
   })
@@ -205,6 +287,11 @@ watch(open, (v) => {
   color: #333;
   margin-bottom: 10px;
 }
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .hint {
   margin-left: 10px;
   font-size: 12px;
@@ -219,11 +306,37 @@ watch(open, (v) => {
   display: flex;
   align-items: center;
   gap: 6px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background 0.15s;
+}
+/* 当前待放置的槽位 */
+.order-item.current {
+  background: #fff1e6;
+  box-shadow: inset 0 0 0 1px #ffbb96;
+}
+/* 双向联动高亮 */
+.order-item.peer {
+  background: #e6f4ff;
 }
 .order-no {
   font-size: 12px;
   color: #888;
   white-space: nowrap;
+}
+.placing-hint {
+  font-size: 12px;
+  color: #d4380d;
+  background: #fff7e6;
+  border: 1px solid #ffe7ba;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+}
+.placing-hint.done {
+  color: #389e0d;
+  background: #f6ffed;
+  border-color: #b7eb8f;
 }
 .bank-table {
   border: 1px solid #e8e8e8;
@@ -267,6 +380,10 @@ watch(open, (v) => {
   background: #fff1e6;
   color: #d4380d;
   font-weight: 600;
+}
+.bank-cell.peer {
+  background: #ffe7ba;
+  box-shadow: inset 0 0 0 2px #fa8c16;
 }
 .cell-order {
   position: absolute;

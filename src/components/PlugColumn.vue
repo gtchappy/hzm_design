@@ -20,18 +20,6 @@
         :open="openPinId === p.id"
         @openChange="(open) => (openPinId = open ? p.id : '')"
       >
-        <a-tooltip placement="top">
-          <template #title>
-            <div>{{ p.label }}</div>
-            <div v-if="cylinderOf(p)" style="margin-top: 4px">发火缸号：缸{{ cylinderOf(p) }}</div>
-            <div v-for="(e, i) in entriesOf(p)" :key="i" style="margin-top: 4px">
-              <div>{{ entriesOf(p).length > 1 ? i + 1 + '. ' : '' }}设备：{{ chooseText(e) }}</div>
-              <div v-if="entryInfo(e).materialNo">物料号：{{ entryInfo(e).materialNo }}</div>
-              <div v-if="entryInfo(e).connector">插头：{{ entryInfo(e).connector }}</div>
-              <div v-if="entryInfo(e).define">定义：{{ entryInfo(e).define }}</div>
-              <div v-if="e.remark">备注：{{ e.remark }}</div>
-            </div>
-          </template>
           <div class="pin-content">
             <!-- 发火顺序缸号：橙底白字，显示信号名 + 缸号 -->
             <template v-if="cylinderOf(p)">
@@ -66,11 +54,25 @@
               </div>
               <div class="pin-line pin-sub">{{ chooseText(entriesOf(p)[0]) }}</div>
             </template>
+            <!-- 独立针脚备注（不依赖设备分配） -->
+            <div v-if="pinRemarkOf(p)" class="pin-line pin-sub remark-line">
+              {{ pinRemarkOf(p) }}
+            </div>
           </div>
-        </a-tooltip>
 
         <template #overlay>
           <div class="assign-panel" @mousedown.stop @click.stop>
+            <div class="panel-title">针脚备注</div>
+            <a-input
+              :value="pinRemarkOf(p)"
+              size="small"
+              placeholder="在此填写备注"
+              style="margin-bottom: 8px"
+              @update:value="(v) => projectStore.setPinRemark(p.id, v)"
+              @mousedown.stop
+              @click.stop
+            />
+            <a-divider style="margin: 8px 0" />
             <template v-if="entriesOf(p).length">
               <div class="panel-title">已分配（{{ entriesOf(p).length }}）</div>
               <div v-for="(e, i) in entriesOf(p)" :key="i" class="assign-row">
@@ -131,6 +133,9 @@ const gridWidth = (p) => (props.plug === 'E' || p.no > 56 ? '33.3333%' : '25%')
 
 // 该针脚回写的发火顺序缸号（无则空）
 const cylinderOf = (p) => projectStore.cylinderMap[p.id]
+
+// 该针脚的独立备注（不依赖设备分配）
+const pinRemarkOf = (p) => projectStore.pinRemarks[p.id] || ''
 
 // 该针脚的分配条目（一个针脚可有多条）
 const entriesOf = (p) => projectStore.assignments[p.id] || []
@@ -257,6 +262,11 @@ const removeEntry = (p, index) => projectStore.removeAssignment(p.id, index)
 .pin-sub {
   font-size: 11px;
   line-height: 1.3;
+}
+/* 独立针脚备注：弱化显示，和设备分配区分 */
+.remark-line {
+  color: #999;
+  font-style: italic;
 }
 
 /* 针脚管理面板（点击弹出） */

@@ -299,6 +299,13 @@ export const useProjectStore = defineStore('project', () => {
   // 发火顺序回写：物理针脚 → 缸号。独立于 assignments，互不干扰。
   // 结构：{ [pinId]: 缸号 }（一个 INJ 的 +/− 两个针脚都写同一个缸号）
   const cylinderMap = ref(isObj(ws0.cylinderMap) ? { ...ws0.cylinderMap } : {})
+  // 发火顺序的录入次序（单元格名数组，如 ['A1','B2',…]），用于重开侧边栏时按原序还原，
+  // 而不是靠缸号数值猜测。仅作展示还原用途，回写到针脚的真实数据仍是 cylinderMap。
+  const firingSequence = ref(Array.isArray(ws0.firingSequence) ? ws0.firingSequence.map(String) : [])
+
+  // 针脚备注：物理针脚 → 备注文本。独立于设备分配，不选设备也能写。
+  // 结构：{ [pinId]: '备注' }
+  const pinRemarks = ref(isObj(ws0.pinRemarks) ? { ...ws0.pinRemarks } : {})
 
   // 已占用针脚（蓝色）：由 assignments 派生，恒与分配一致
   const confirmedTags = computed(() =>
@@ -309,7 +316,7 @@ export const useProjectStore = defineStore('project', () => {
 
   // 工作区任何变化自动落 localStorage
   watch(
-    [instances, assignments, instanceConnectors, cylinderMap],
+    [instances, assignments, instanceConnectors, cylinderMap, firingSequence, pinRemarks],
     () => {
       try {
         localStorage.setItem(
@@ -319,6 +326,8 @@ export const useProjectStore = defineStore('project', () => {
             assignments: assignments.value,
             instanceConnectors: instanceConnectors.value,
             cylinderMap: cylinderMap.value,
+            firingSequence: firingSequence.value,
+            pinRemarks: pinRemarks.value,
           }),
         )
       } catch (e) {
@@ -345,16 +354,19 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   // ---- 发火顺序：缸号回写 ----
-  // 批量回写发火顺序。entries: [{ pins:[pinId...], cylinder }]，每个 INJ 的两针脚都写。
-  // 整体替换（先清空再写），保证侧边栏的结果即为当前缸号映射。
+  // 批量回写发火顺序。entries: [{ cell, pins:[pinId...], cylinder }]，按录入次序排列，
+  // 每个 INJ 的两针脚都写。整体替换，保证侧边栏的结果即为当前缸号映射 + 录入次序。
   const applyFiringOrder = (entries) => {
     const next = {}
+    const seq = []
     for (const e of entries || []) {
       const cyl = String(e?.cylinder ?? '').trim()
       if (!cyl) continue
       for (const pinId of e?.pins || []) next[pinId] = cyl
+      if (e?.cell) seq.push(String(e.cell))
     }
     cylinderMap.value = next
+    firingSequence.value = seq
   }
   const clearCylinder = (pinId) => {
     if (pinId in cylinderMap.value) {
@@ -365,6 +377,14 @@ export const useProjectStore = defineStore('project', () => {
   }
   const clearAllCylinders = () => {
     cylinderMap.value = {}
+    firingSequence.value = []
+  }
+
+  // ---- 针脚备注（独立于设备分配） ----
+  const setPinRemark = (pinId, text) => {
+    const t = String(text ?? '')
+    if (t.trim()) pinRemarks.value[pinId] = t
+    else delete pinRemarks.value[pinId]
   }
 
   // ---- 工作区设备实例的增删 ----
@@ -401,6 +421,8 @@ export const useProjectStore = defineStore('project', () => {
       assignments: clone(assignments.value),
       instanceConnectors: clone(instanceConnectors.value),
       cylinderMap: clone(cylinderMap.value),
+      firingSequence: clone(firingSequence.value),
+      pinRemarks: clone(pinRemarks.value),
     },
   })
 
@@ -417,6 +439,8 @@ export const useProjectStore = defineStore('project', () => {
     assignments.value = normalizeAssignments(ws.assignments)
     instanceConnectors.value = isObj(ws.instanceConnectors) ? clone(ws.instanceConnectors) : {}
     cylinderMap.value = isObj(ws.cylinderMap) ? clone(ws.cylinderMap) : {}
+    firingSequence.value = Array.isArray(ws.firingSequence) ? ws.firingSequence.map(String) : []
+    pinRemarks.value = isObj(ws.pinRemarks) ? clone(ws.pinRemarks) : {}
     // 清空临时选择与高亮（导入后没有“当前选中”的设备）
     canChoose.value = []
     currentDevice.value = ''
@@ -473,9 +497,13 @@ export const useProjectStore = defineStore('project', () => {
     removeAssignment,
     // 发火顺序：缸号回写
     cylinderMap,
+    firingSequence,
     applyFiringOrder,
     clearCylinder,
     clearAllCylinders,
+    // 针脚备注（独立于设备分配）
+    pinRemarks,
+    setPinRemark,
     // 项目级导入导出
     exportProject,
     importProject,
