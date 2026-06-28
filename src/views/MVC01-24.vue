@@ -1,6 +1,7 @@
 <template>
     <ChooseTable @emitSelectedDevice="handleSelectedDevice" />
     <ChooseCard  />
+    <PrintSummary />
 </template>
 
 <script setup>
@@ -8,6 +9,7 @@ import ChooseTable from '@/components/ChooseTable.vue'
 
 
 import ChooseCard from '@/components/ChooseCard.vue'
+import PrintSummary from '@/components/PrintSummary.vue'
 
 
 const handleSelectedDevice = function(device) {

@@ -1,0 +1,56 @@
+/* 打印（另存为 PDF）专用样式：竖向 A4、彩色、只打印针脚网格 + 汇总页 */
+
+/* 屏幕上隐藏打印专用内容（汇总页） */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm;
+  }
+
+  /* 彩色照印（已占用/缸号格/角标等背景色） */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 隐藏：顶部导航、工具栏、浮动按钮、下拉浮层等非内容元素 */
+  .ant-layout-header,
+  .no-print,
+  .ant-float-btn,
+  .ant-dropdown,
+  .ant-tooltip,
+  .ant-popover,
+  .ant-drawer-root {
+    display: none !important;
+  }
+
+  /* 去掉为固定头部预留的上边距 */
+  .ant-layout-content {
+    padding-top: 0 !important;
+  }
+
+  /* 插头卡片竖向单列堆叠，避免被分页切断 */
+  .mvc-plugs .ant-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
+    margin-top: 0 !important;
+    margin-bottom: 12px !important;
+  }
+  .mvc-plugs .ant-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 显示汇总页，并另起一页 */
+  .print-only {
+    display: block !important;
+  }
+  .print-summary {
+    page-break-before: always;
+  }
+}

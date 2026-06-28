@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: #ececec; padding: 0 20px 20px 20px">
+  <div class="mvc-plugs" style="background-color: #ececec; padding: 0 20px 20px 20px">
     <a-row :gutter="10">
       <a-col
         v-for="plug in projectStore.plugs"

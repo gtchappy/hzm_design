@@ -1,5 +1,5 @@
 <template>
-  <a-space style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top: 20px">
+  <a-space class="no-print" style="background-color: #ececec; width: 100%; padding-left: 20px; padding-top: 20px">
     <!-- 用来选择设备配置 -->
     <a-select style="width: 350px" @change="handleChange" placeholder="显示全部" >
       <a-select-option
@@ -34,6 +34,8 @@
     <a-button type="primary" @click="firingOpen = true">发火顺序</a-button>
     <FiringOrderDrawer v-model:open="firingOpen" />
 
+    <a-button @click="handlePrint">打印</a-button>
+
     <a-float-button
       v-if="projectStore.deviceDefine[selectedDevice]"
       shape="square"
@@ -57,6 +59,9 @@ const emit = defineEmits(['emitSelectedDevice'])
 const selectedDevice = ref('')
 const firingOpen = ref(false)
 const projectStore = useProjectStore()
+
+// 打印当前 MVC01-24 界面（另存为 PDF）。打印样式见 assets/print.css
+const handlePrint = () => window.print()
 
 // 当前功能查询项的针脚统计：总数 / 已用（已被占用）/ 剩余
 const funcStats = computed(() => {

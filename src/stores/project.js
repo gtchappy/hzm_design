@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import { customAlphabet } from 'nanoid'
 import { PINS, PINS_BY_PLUG, PLUGS, labelOf } from '@/data/pins'
 import { DEFAULT_DEVICES, DEFAULT_PIN_TYPES, DEFAULT_PIN_FUNCTIONS } from '@/data/devices'
+import { DEFAULT_FIRING_PRESETS } from '@/data/firingOrder'
 
 const clone = (o) => JSON.parse(JSON.stringify(o))
 const nano = customAlphabet('0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', 3)
@@ -10,7 +11,28 @@ const DEVICES_STORAGE_KEY = 'hzm.devices'
 const DOC_FOLDER_STORAGE_KEY = 'hzm.docFolder'
 const PIN_TYPES_STORAGE_KEY = 'hzm.pinTypes'
 const PIN_FUNCTIONS_STORAGE_KEY = 'hzm.pinFunctions'
+const FIRING_PRESETS_STORAGE_KEY = 'hzm.firingPresets'
 const WORKSPACE_STORAGE_KEY = 'hzm.workspace'
+
+// 规范化一条发火顺序预设
+const normPreset = (p) => ({
+  name: String(p?.name ?? '').trim(),
+  seq: String(p?.seq ?? '').trim(),
+})
+
+// 发火顺序预设库：优先读 localStorage，没有或损坏则回退到内置默认
+function loadFiringPresets() {
+  try {
+    const raw = localStorage.getItem(FIRING_PRESETS_STORAGE_KEY)
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) return parsed.map(normPreset).filter((e) => e.name)
+    }
+  } catch (e) {
+    console.warn('读取发火顺序预设失败，使用内置默认：', e)
+  }
+  return clone(DEFAULT_FIRING_PRESETS).map(normPreset)
+}
 
 // 工作区（已选设备、针脚分配、所选插头等）持久化读取，刷新不丢
 function loadWorkspace() {
@@ -271,6 +293,43 @@ export const useProjectStore = defineStore('project', () => {
     Object.fromEntries(pinFunctionsData.list.value.map((e) => [e.name, e.pins.map(labelOf)])),
   )
 
+  // ---- 发火顺序预设库（可视化维护 + 随项目导入导出，自动持久化） ----
+  const firingPresets = ref(loadFiringPresets())
+  watch(
+    firingPresets,
+    (val) => {
+      try {
+        localStorage.setItem(FIRING_PRESETS_STORAGE_KEY, JSON.stringify(val))
+      } catch (e) {
+        console.warn('保存发火顺序预设失败：', e)
+      }
+    },
+    { deep: true },
+  )
+  // 新增一条空白预设（名称自动去重，便于直接编辑）
+  const addFiringPreset = () => {
+    let i = firingPresets.value.length + 1
+    let name = `发火顺序-${i}`
+    while (firingPresets.value.some((x) => x.name === name)) name = `发火顺序-${++i}`
+    firingPresets.value.push({ name, seq: '' })
+  }
+  const removeFiringPreset = (index) => firingPresets.value.splice(index, 1)
+  const resetFiringPresets = () => {
+    firingPresets.value = clone(DEFAULT_FIRING_PRESETS).map(normPreset)
+  }
+  const importFiringPresets = (arr) => {
+    if (!Array.isArray(arr)) throw new Error('格式错误：根节点应为数组')
+    const seen = new Set()
+    const next = []
+    for (const it of arr) {
+      const e = normPreset(it)
+      if (!e.name || seen.has(e.name)) continue
+      seen.add(e.name)
+      next.push(e)
+    }
+    firingPresets.value = next
+  }
+
   // ---- 用户操作状态 ----
   // 工作区数据（instances / assignments / instanceConnectors）从 localStorage 还原并自动持久化。
   const ws0 = loadWorkspace()
@@ -415,6 +474,7 @@ export const useProjectStore = defineStore('project', () => {
     devices: clone(devices.value),
     pinTypes: clone(pinTypesData.list.value),
     pinFunctions: clone(pinFunctionsData.list.value),
+    firingPresets: clone(firingPresets.value),
     docFolder: docFolder.value,
     workspace: {
       instances: clone(instances.value),
@@ -432,6 +492,7 @@ export const useProjectStore = defineStore('project', () => {
     if (Array.isArray(data.devices)) importDevices(data.devices)
     if (Array.isArray(data.pinTypes)) pinTypesData.importList(data.pinTypes)
     if (Array.isArray(data.pinFunctions)) pinFunctionsData.importList(data.pinFunctions)
+    if (Array.isArray(data.firingPresets)) importFiringPresets(data.firingPresets)
     if (typeof data.docFolder === 'string') docFolder.value = data.docFolder
     // 工作区（整体替换，随后由 watch 自动持久化）
     const ws = data.workspace || {}
@@ -469,6 +530,12 @@ export const useProjectStore = defineStore('project', () => {
     removePinFunction: pinFunctionsData.remove,
     importPinFunctions: pinFunctionsData.importList,
     resetPinFunctions: pinFunctionsData.reset,
+    // 发火顺序预设库
+    firingPresets,
+    addFiringPreset,
+    removeFiringPreset,
+    resetFiringPresets,
+    importFiringPresets,
     // 设备库
     devices,
     docFolder,

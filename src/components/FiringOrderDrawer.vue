@@ -24,7 +24,7 @@
     <div v-if="orderValues.length" class="section">
       <div class="section-title section-head">
         <span>② 依次填写各次发火的缸号</span>
-        <a-button size="small" type="link" @click="fillSequential">填充 1…N</a-button>
+        <a-button size="small" type="link" @click="pickOpen = true">选择发火顺序</a-button>
       </div>
       <div class="order-grid">
         <div
@@ -109,6 +109,61 @@
         <span class="pair-pins">{{ p.pins.join(' / ') || '无对应针脚' }}</span>
       </div>
     </div>
+
+    <!-- 选择发火顺序：看得到缸数与完整排列，点应用即填入 -->
+    <a-modal v-model:open="pickOpen" title="选择发火顺序" :width="600" :footer="null">
+      <a-button size="small" block style="margin-bottom: 12px" @click="applySequential">
+        顺序 1…N（按当前缸数 {{ cylinderCount || '—' }}）
+      </a-button>
+      <div
+        v-for="(p, i) in projectStore.firingPresets"
+        :key="i"
+        class="pick-row"
+        :class="{ invalid: p.seq && !isValidFiringSeq(p.seq) }"
+      >
+        <div class="pick-info">
+          <div class="pick-name">
+            {{ p.name }}
+            <span class="pick-count">{{ parseFiringSeq(p.seq).length }}缸</span>
+            <span v-if="p.seq && !isValidFiringSeq(p.seq)" class="pick-bad">非法排列</span>
+          </div>
+          <div class="pick-seq">{{ p.seq || '（空）' }}</div>
+        </div>
+        <a-button
+          type="primary"
+          size="small"
+          :disabled="!isValidFiringSeq(p.seq)"
+          @click="applyPresetAndClose(p)"
+        >
+          应用
+        </a-button>
+      </div>
+      <a-divider style="margin: 12px 0" />
+      <a-button size="small" type="link" @click="openManageFromPick">管理发火顺序…</a-button>
+    </a-modal>
+
+    <!-- 管理发火顺序预设 -->
+    <a-modal v-model:open="manageOpen" title="管理发火顺序" :width="560" :footer="null">
+      <div class="preset-hint">
+        每条须为 1…N 的合法排列（每个缸号恰好一次），否则标红、不可选用。
+      </div>
+      <div v-for="(p, i) in projectStore.firingPresets" :key="i" class="preset-row">
+        <a-input v-model:value="p.name" size="small" placeholder="名称" style="width: 110px" />
+        <a-input
+          v-model:value="p.seq"
+          size="small"
+          placeholder="如 1-3-4-2"
+          :status="p.seq && !isValidFiringSeq(p.seq) ? 'error' : ''"
+        />
+        <a-button type="text" danger size="small" @click="projectStore.removeFiringPreset(i)">
+          删除
+        </a-button>
+      </div>
+      <div class="preset-actions">
+        <a-button size="small" @click="projectStore.addFiringPreset()">+ 新增</a-button>
+        <a-button size="small" @click="projectStore.resetFiringPresets()">恢复默认</a-button>
+      </div>
+    </a-modal>
   </a-drawer>
 </template>
 
@@ -116,11 +171,19 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { message } from 'ant-design-vue'
 import { useProjectStore } from '@/stores/project'
-import { FIRING_BANKS, FIRING_CELLS, FIRING_CELL_BY_NAME } from '@/data/firingOrder'
+import {
+  FIRING_BANKS,
+  FIRING_CELLS,
+  FIRING_CELL_BY_NAME,
+  parseFiringSeq,
+  isValidFiringSeq,
+} from '@/data/firingOrder'
 
 const open = defineModel('open', { type: Boolean, default: false })
 const projectStore = useProjectStore()
 
+const manageOpen = ref(false)
+const pickOpen = ref(false)
 const cylinderCount = ref(null)
 const orderValues = ref([]) // 槽位 i 的缸号
 const assignedCells = ref([]) // 槽位 i 选定的单元格名（null=未指定）；与 orderValues 一一对应、互不滑动
@@ -188,6 +251,33 @@ const clearSelection = () => (assignedCells.value = assignedCells.value.map(() =
 const fillSequential = () => {
   const count = Number(cylinderCount.value) || 0
   orderValues.value = Array.from({ length: count }, (_, i) => String(i + 1))
+}
+
+// 选用一条发火顺序预设：自动设缸数 + 填入缸号（点选格子保持，便于接着点）
+const applyPreset = (p) => {
+  const arr = parseFiringSeq(p.seq)
+  if (!arr.length) return
+  cylinderCount.value = arr.length
+  nextTick(() => {
+    orderValues.value = arr.slice()
+  })
+}
+const applyPresetAndClose = (p) => {
+  applyPreset(p)
+  pickOpen.value = false
+}
+const openManageFromPick = () => {
+  pickOpen.value = false
+  manageOpen.value = true
+}
+// 顺序 1…N：需先有缸数
+const applySequential = () => {
+  if (!(Number(cylinderCount.value) > 0)) {
+    message.warning('请先在上方填写缸数')
+    return
+  }
+  fillSequential()
+  pickOpen.value = false
 }
 
 // 缸号查重
@@ -423,5 +513,57 @@ watch(open, (v) => {
 .pair-pins {
   margin-left: auto;
   color: #888;
+}
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.pick-info {
+  flex: 1;
+  min-width: 0;
+}
+.pick-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+.pick-count {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 400;
+  color: #888;
+}
+.pick-bad {
+  margin-left: 6px;
+  font-size: 12px;
+  color: #cf1322;
+}
+.pick-seq {
+  margin-top: 2px;
+  font-family: Consolas, Menlo, monospace;
+  font-size: 12px;
+  color: #555;
+  word-break: break-all;
+}
+.pick-row.invalid .pick-seq {
+  color: #cf1322;
+}
+.preset-hint {
+  font-size: 12px;
+  color: #999;
+  margin-bottom: 12px;
+}
+.preset-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.preset-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
 }
 </style>
