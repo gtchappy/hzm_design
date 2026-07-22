@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="HZM Design">
+  <rect width="512" height="512" fill="#F8FAFC"/>
+  <path
+    d="M98 199A168 168 0 0 1 414 199"
+    fill="none"
+    stroke="#007E80"
+    stroke-width="58"
+    stroke-linecap="round"
+  />
+  <path
+    d="M414 313A168 168 0 0 1 98 313"
+    fill="none"
+    stroke="#1B2425"
+    stroke-width="58"
+    stroke-linecap="round"
+  />
+</svg>
