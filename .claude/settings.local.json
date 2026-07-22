@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_Preview__preview_start",
+      "PowerShell(pnpm test)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "PowerShell(Get-NetTCPConnection -State Listen -LocalPort 5173,5174,5175 -ErrorAction SilentlyContinue | Select-Object LocalPort,OwningProcess | ForEach-Object { $p=Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue; [PSCustomObject]@{Port=$_.LocalPort; PID=$_.OwningProcess; Name=$p.ProcessName} })",
+      "PowerShell(Stop-Process -Id 4916,25328 -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -State Listen -LocalPort 5173,5174,5175 -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

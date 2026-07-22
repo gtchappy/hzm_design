@@ -66,6 +66,51 @@
         </tbody>
       </table>
     </template>
+
+    <!-- 设备定义里的全部设备物料清单 -->
+    <h3 class="print-h3">设备定义清单</h3>
+    <template v-if="deviceDefinitionRows.length">
+      <section v-for="device in deviceDefinitionRows" :key="device.id" class="print-device-card">
+        <div class="device-card-title">
+          <span class="device-card-index">{{ device.index }}</span>
+          <span>{{ device.name }}</span>
+        </div>
+
+        <div class="print-device-summary">
+          <div>
+            <div class="summary-label">设备料号</div>
+            <div class="summary-value">{{ device.materialNo }}</div>
+          </div>
+          <div>
+            <div class="summary-label">传感器插头料号</div>
+            <div class="summary-value">{{ device.selectedConnectorDesc }}</div>
+          </div>
+          <div>
+            <div class="summary-label">传感器插头料号</div>
+            <div class="summary-value">{{ device.selectedConnectorPartNo }}</div>
+          </div>
+        </div>
+
+        <table v-if="device.terminals.length" class="print-table print-terminal-table">
+          <thead>
+            <tr>
+              <th style="width: 14%">序号</th>
+              <th style="width: 38%">传感器针脚</th>
+              <th style="width: 48%">功能定义</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="terminal in device.terminals" :key="terminal.index">
+              <td>{{ terminal.index }}</td>
+              <td>{{ terminal.name }}</td>
+              <td>{{ terminal.func }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div v-else class="print-empty print-device-empty">（该设备未维护传感器针脚定义）</div>
+      </section>
+    </template>
+    <div v-else class="print-empty">（暂无设备定义）</div>
   </div>
 </template>
 
@@ -78,6 +123,30 @@ import { FIRING_CELLS, FIRING_CELL_BY_NAME } from '@/data/firingOrder'
 const store = useProjectStore()
 
 const today = new Date().toLocaleDateString('zh-CN')
+
+const deviceMap = computed(() => Object.fromEntries(store.devices.map((d) => [d.name, d])))
+
+const deviceDefinitionRows = computed(() =>
+  store.instances.map((inst, deviceIndex) => {
+    const device = deviceMap.value[inst.name] || {}
+    const selectedPartNo = store.instanceConnectors[inst.id] || ''
+    const selectedConnector = (device.connectors || []).find((connector) => connector.partNo === selectedPartNo)
+
+    return {
+      index: deviceIndex + 1,
+      id: inst.id,
+      name: inst.name || '未命名设备',
+      materialNo: device.materialNo || '未填写',
+      selectedConnectorDesc: selectedPartNo ? selectedConnector?.desc || '未填写说明' : '未选择',
+      selectedConnectorPartNo: selectedPartNo || '未选择',
+      terminals: (device.terminals || []).map((terminal, index) => ({
+        index: index + 1,
+        name: terminal.name || '—',
+        func: terminal.func || '未设置',
+      })),
+    }
+  }),
+)
 
 // 已分配设备清单：按针脚顺序列出每条分配
 const assignedRows = computed(() => {
@@ -144,6 +213,65 @@ const remarkRows = computed(() =>
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
+}
+.print-device-card {
+  break-inside: avoid;
+  page-break-inside: avoid;
+  margin-bottom: 14px;
+}
+.device-card-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid #999;
+  border-bottom: 0;
+  background: #e9eef7;
+  font-size: 13px;
+  font-weight: 700;
+}
+.device-card-index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  background: #333;
+  color: #fff;
+  font-size: 11px;
+}
+.print-device-summary {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  border: 1px solid #999;
+  border-bottom: 0;
+  background: #fafafa;
+  font-size: 12px;
+}
+.print-device-summary > div {
+  padding: 6px 8px;
+  border-right: 1px solid #999;
+}
+.print-device-summary > div:last-child {
+  border-right: 0;
+}
+.summary-label {
+  color: #666;
+  margin-bottom: 2px;
+}
+.summary-value {
+  font-weight: 700;
+  color: #111;
+  word-break: break-all;
+}
+.print-terminal-table {
+  font-size: 11px;
+}
+.print-device-empty {
+  padding: 5px 8px;
+  border: 1px solid #999;
+  border-top: 0;
 }
 .print-table th,
 .print-table td {
